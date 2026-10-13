@@ -61,3 +61,18 @@
 .bp-step p { margin: 0; font-size: .96rem; }
 .bp-step canvas { display: block; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; border-radius: 10px; background: #111413; }
 .bp-note { font-size: .84rem; color: var(--ink-3); }
+
+/* ---------- 3D navigation ---------- */
+.bx-nav { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+.bx-nav > * { pointer-events: auto; }
+.bx-seg, .bx-views { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(15, 18, 17, .8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--rule); }
+.bx-seg button, .bx-views button {
+  height: 28px; padding: 0 12px; border: 0; border-radius: 999px; cursor: pointer; background: transparent; color: var(--ink-2);
+  font: 600 .68rem var(--sans); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+}
+.bx-seg button[aria-pressed="true"] { background: var(--on-char); color: var(--char); }
+.bx-views button:hover, .bx-seg button[aria-pressed="false"]:hover { color: var(--ink); }
+.bx-hint { position: absolute; right: 14px; bottom: 56px; pointer-events: none; text-align: right; }
+.bx-stage model-viewer.moving { cursor: grab; touch-action: none; }
+.bx-stage model-viewer.moving.dragging { cursor: grabbing; }
+@media (max-width: 600px) { .bx-views button { padding: 0 9px; letter-spacing: .06em; } .bx-hint { display: none; } }

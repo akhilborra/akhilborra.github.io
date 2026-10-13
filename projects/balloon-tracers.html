@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="../assets/css/style.css?v=7">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=5"></script>
-  <link rel="stylesheet" href="../assets/css/balloon.css?v=2">
-  <script defer src="../assets/js/balloon-explorer.js?v=2"></script>
+  <link rel="stylesheet" href="../assets/css/balloon.css?v=3">
+  <script defer src="../assets/js/balloon-explorer.js?v=3"></script>
   <script defer src="../assets/js/balloon-pipeline.js?v=2"></script>
 </head>
 <body>
@@ -63,7 +63,7 @@
       <div class="bx" id="bx">
         <div class="bx-stage">
           <model-viewer data-tracks="../assets/data/balloon-tracks.json?v=1" src="../assets/models/balloon-real.glb?v=1" alt="3D terrain model of the WINSENT test site with wind turbines and the recorded balloon tracks"
-            camera-controls autoplay touch-action="pan-y" interaction-prompt="none" tone-mapping="neutral" exposure="1.05" shadow-intensity="0"
+            camera-controls autoplay touch-action="none" interaction-prompt="none" tone-mapping="neutral" exposure="1.05" shadow-intensity="0"
             camera-target="14000m 4200m -900m" camera-orbit="-10deg 64deg 38000m" field-of-view="30deg"
             min-camera-orbit="auto 5deg 1500m" max-camera-orbit="auto 86deg 70000m">
             <div class="viewer-hint" slot="poster">Loading terrain and tracks…</div>
@@ -74,6 +74,19 @@
             <button class="bx-chip" type="button" data-launch="C" aria-pressed="true" style="--c:#70AD47"><i></i>Launch C <small>14:44</small></button>
           </div>
           <div class="bx-note"><div class="label">Vertical scale ×3</div><div class="label">Balloons enlarged</div></div>
+          <div class="bx-nav">
+            <div class="bx-seg" role="group" aria-label="Drag mode">
+              <button type="button" data-mode="rotate" aria-pressed="false">Rotate</button>
+              <button type="button" data-mode="move" aria-pressed="true">Move</button>
+            </div>
+            <div class="bx-views" role="group" aria-label="Viewpoints">
+              <button type="button" data-view="overview">Overview</button>
+              <button type="button" data-view="release">Release site</button>
+              <button type="button" data-view="farms">Wind farms</button>
+              <button type="button" data-view="top">Top-down</button>
+            </div>
+          </div>
+          <div class="bx-hint label">Drag to move · scroll or pinch to zoom · Shift-drag to rotate</div>
         </div>
         <div class="bx-controls">
           <button class="bx-play" type="button" aria-label="Pause">❚❚</button>

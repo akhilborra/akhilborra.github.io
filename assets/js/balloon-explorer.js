@@ -179,6 +179,63 @@
   range.addEventListener("change", () => { scrubbing = false; });
   ["play", "pause"].forEach(ev => mv.addEventListener(ev, syncPlay));
 
+
+  // ---------- navigation: left-drag moves the map (Move mode), Shift-drag rotates; viewpoint presets ----------
+  const VIEWS = {
+    overview: ["14000m 4200m -900m", "-10deg 64deg 38000m"],
+    release: ["600m 900m 0m", "-35deg 62deg 7000m"],
+    farms: ["9000m 1300m -1200m", "-20deg 58deg 13000m"],
+    top: ["14000m 0m -900m", "0deg 5deg 40000m"],
+  };
+  let mode = "move";
+  const segBtns = box.querySelectorAll(".bx-seg button");
+  const hint = box.querySelector(".bx-hint");
+  function setMode(m) {
+    mode = m;
+    segBtns.forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+    mv.classList.toggle("moving", m === "move");
+    mv.setAttribute("touch-action", m === "move" ? "none" : "pan-y");
+    hint.textContent = m === "move" ? "Drag to move · scroll or pinch to zoom · Shift-drag to rotate"
+                                    : "Drag to rotate · scroll or pinch to zoom · Shift-drag to move";
+  }
+  segBtns.forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  box.querySelectorAll(".bx-views button").forEach(b => b.addEventListener("click", () => {
+    const [t, o] = VIEWS[b.dataset.view]; mv.cameraTarget = t; mv.cameraOrbit = o;
+  }));
+  setMode("move");
+
+  let drag = null;
+  const clampTarget = (x, z) => {
+    if (!D) return [x, z];
+    const e = D.extent;
+    return [Math.min(Math.max(x, e.x0), e.x1), Math.min(Math.max(z, -e.y1), -e.y0)];
+  };
+  mv.addEventListener("pointerdown", ev => {
+    const panning = (mode === "move") !== ev.shiftKey;
+    if (!panning || ev.button !== 0) return;
+    ev.stopPropagation(); ev.preventDefault();
+    mv.setPointerCapture(ev.pointerId);
+    drag = { id: ev.pointerId, x: ev.clientX, y: ev.clientY };
+    mv.classList.add("dragging");
+  }, true);
+  mv.addEventListener("pointermove", ev => {
+    if (!drag || ev.pointerId !== drag.id) return;
+    ev.stopPropagation();
+    const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+    drag.x = ev.clientX; drag.y = ev.clientY;
+    const o = mv.getCameraOrbit(), t = mv.getCameraTarget(), fov = mv.getFieldOfView() * Math.PI / 180;
+    const mpp = 2 * o.radius * Math.tan(fov / 2) / mv.clientHeight;
+    const rx = Math.cos(o.theta), rz = -Math.sin(o.theta);          // camera right, on the ground plane
+    const fx = -Math.sin(o.theta), fz = -Math.cos(o.theta);         // camera forward, on the ground plane
+    const k = 1 / Math.max(Math.cos(o.phi), 0.35);
+    const [x, z] = clampTarget(t.x - rx * dx * mpp + fx * dy * mpp * k, t.z - rz * dx * mpp + fz * dy * mpp * k);
+    mv.cameraTarget = `${x}m ${t.y}m ${z}m`;
+    mv.jumpCameraToGoal();
+  }, true);
+  const endDrag = ev => { if (drag && ev.pointerId === drag.id) { ev.stopPropagation(); drag = null; mv.classList.remove("dragging"); } };
+  mv.addEventListener("pointerup", endDrag, true);
+  mv.addEventListener("pointercancel", endDrag, true);
+
   fetch(mv.dataset.tracks).then(r => r.json()).then(data => {
     D = data; range.max = D.loop; buildGround(); buildTable(); render(true);
     mv.addEventListener("load", () => { if (reduce) { mv.pause(); mv.currentTime = 9; } syncPlay(); render(true); });
