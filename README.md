@@ -41,11 +41,18 @@ Then open http://localhost:8000.
 ## 3D models
 
 The two interactive models were exported from the Blender scenes with the scripts in `tools/`
-(grass instances removed, particles baked, Draco-compressed). To re-export after editing a scene:
+(grass instances removed, Draco-compressed). The bubble-setup model is animated: bubble paths are
+baked from the scene's particle simulation and looped, and the rotor and tip-vortex helix spin.
+To rebuild it after editing the scene:
 
 ```bash
-/Applications/Blender.app/Contents/MacOS/Blender -b "path/to/main_APS_static_animation5.blend" --python tools/export_bubble.py -- assets/models/lpt-setup.glb
-/Applications/Blender.app/Contents/MacOS/Blender -b "path/to/wind_farm.blend" --python tools/export_farm.py -- assets/models/balloon-farm.glb
+B=/Applications/Blender.app/Contents/MacOS/Blender
+$B -b "path/to/main_APS_static_animation5.blend" --python tools/export_bubble.py -- static.glb --animated
+$B -b "path/to/main_APS_static_animation5.blend" --python tools/bake_bubbles.py -- paths.json 1000
+python3 tools/animate_glb.py static.glb paths.json assets/models/lpt-setup.glb
+$B -b "path/to/wind_farm.blend" --python tools/export_farm.py -- assets/models/balloon-farm.glb
 ```
 
-The scripts only modify the scene in memory; the .blend files are not saved.
+The bake steps through the simulation and takes about 5 minutes. The scripts only modify the scene in
+memory; the .blend files are not saved. After changing `style.css`, bump the `?v=` number on the
+stylesheet links so browsers fetch the new version.

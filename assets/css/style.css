@@ -170,3 +170,9 @@ figure.viewer figcaption { font-size: .86rem; color: var(--muted); margin-top: 8
 .badge { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
 .card .badge { position: absolute; top: 12px; left: 12px; margin: 0; background: rgba(255,255,255,.92); color: #0e6b74; }
 .card { position: relative; }
+.viewer-btn {
+  position: absolute; right: 12px; bottom: 12px;
+  font: 500 .82rem var(--sans); padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,.92); color: #1c2226; border: 1px solid rgba(0,0,0,.12);
+}
+.viewer-btn:hover { background: #fff; }

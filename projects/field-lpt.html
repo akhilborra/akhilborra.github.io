@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=2">
+  <link rel="stylesheet" href="../assets/css/style.css?v=3">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
@@ -38,10 +38,11 @@
       <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake." loading="lazy"><figcaption>The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake.</figcaption></figure>
       <h2>Explore the setup</h2>
       <figure class="viewer">
-        <model-viewer src="../assets/models/lpt-setup.glb" alt="3D model of the field particle-tracking setup at the wind turbine" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="0m 14m 2m" camera-orbit="-50deg 78deg 48m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
+        <model-viewer id="lpt-model" src="../assets/models/lpt-setup.glb" autoplay alt="3D model of the field particle-tracking setup at the wind turbine" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="0m 14m 2m" camera-orbit="-50deg 78deg 48m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
           <div class="viewer-hint" slot="poster">Loading 3D model…</div>
+          <button class="viewer-btn" type="button" aria-label="Pause animation">Pause</button>
         </model-viewer>
-        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. The drone-lifted generator seeds bubbles upstream; the red volume is where all four cameras overlap, and the rings sketch the tip vortex helix. Bubbles are drawn larger than life (real ones are ~2.5 cm) so they're visible.</figcaption>
+        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. Bubbles follow trajectories from a particle simulation of the setup, released by the drone-lifted generator upstream. The rotor turns, and the tip-vortex helix turns with it, carrying the vortex downstream. The red volume is where all four cameras overlap. Bubbles are drawn larger than life (real ones are about 2.5 cm) so they're visible.</figcaption>
       </figure>
 
       <h2>The system</h2>
@@ -69,5 +70,15 @@
       <a href="../index.html">Back to home</a>
     </div>
   </footer>
+  <script>
+    (() => {
+      const mv = document.getElementById("lpt-model");
+      const btn = mv.querySelector(".viewer-btn");
+      const sync = () => { const p = mv.paused; btn.textContent = p ? "Play" : "Pause"; btn.setAttribute("aria-label", (p ? "Play" : "Pause") + " animation"); };
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { mv.removeAttribute("autoplay"); mv.removeAttribute("auto-rotate"); }
+      btn.addEventListener("click", () => { mv.paused ? mv.play() : mv.pause(); sync(); });
+      mv.addEventListener("play", sync); mv.addEventListener("pause", sync); mv.addEventListener("load", sync);
+    })();
+  </script>
 </body>
 </html>
