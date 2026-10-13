@@ -7,30 +7,49 @@
   <meta name="description" content="Intrinsic phase-based POD and conditional POD for physically interpretable structures in turbulent and near-periodic flows.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css?v=4">
+  <script defer src="../assets/js/site.js?v=4"></script>
 </head>
 <body>
-  <nav class="nav">
-    <div class="wrap">
-      <a class="brand" href="../index.html">Akhileshwar Borra</a>
-      <ul>
-        <li><a href="../index.html#projects">Projects</a></li>
-        <li><a href="../index.html#publications">Publications</a></li>
-        <li class="hide-sm"><a href="../index.html#experience">Experience</a></li>
-        <li><a href="../index.html#contact">Contact</a></li>
-      </ul>
+  <header class="topbar">
+    <a class="pill" href="../index.html"><span class="mono">AB</span>Akhileshwar Borra</a>
+    <button class="menu-btn" type="button" data-menu-open aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <div class="menu" id="menu" role="dialog" aria-label="Site menu">
+    <div class="menu-top">
+      <span class="label">Akhileshwar Borra</span>
+      <button class="btn-square" type="button" data-menu-close aria-label="Close menu">×</button>
     </div>
-  </nav>
-  <main class="wrap">
-    <div class="crumb"><a href="../index.html#projects">← All projects</a></div>
-    <header class="project-hero">
-      <div class="eyebrow" style="color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">University of Illinois · JFM 2025, AIAA J 2022</div>
-      <h1>Modal analysis for fluid flows</h1>
-      <p class="lede">Proper orthogonal decomposition finds the most energetic structures in a flow, but in nonlinear, near-periodic systems those modes can blend physics together and become hard to interpret. I developed new POD formulations that keep the structures tied to the physics driving them.</p>
-      <dl class="facts"><div><dt>Methods</dt><dd>IPhaB POD, SPOD, conditional POD</dd></div><div><dt>Applications</dt><dd>Shock oscillations, TBLs, aero-optics</dd></div><div><dt>Venues</dt><dd>JFM, AIAA Journal</dd></div></dl>
+    <nav>
+      <a href="../index.html"><small>00</small>Home</a>
+      <a href="../index.html#work"><small>01</small>Projects</a>
+      <a href="../index.html#publications"><small>02</small>Publications</a>
+      <a href="../index.html#career"><small>03</small>Career</a>
+      <a href="../index.html#contact"><small>04</small>Contact</a>
+    </nav>
+    <div class="menu-foot">
+      <a href="mailto:akhil.borra@gmail.com">akhil.borra@gmail.com</a>
+      <span class="label">Max Planck Institute for Dynamics and Self-Organization</span>
+    </div>
+  </div>
+
+  <main>
+    <header class="page-hero on-dark streams-dark">
+      <div class="wrap">
+        <a class="crumb label" href="../index.html#work">← All projects</a>
+        <div class="label reveal">University of Illinois · JFM 2025, AIAA J 2022</div>
+        <h1 class="display reveal" style="margin-top:18px">Modal analysis for fluid flows</h1>
+        <p class="lede reveal">Proper orthogonal decomposition finds the most energetic structures in a flow, but in nonlinear, near-periodic systems those modes can blend physics together and become hard to interpret. I developed new POD formulations that keep the structures tied to the physics driving them.</p>
+        <dl class="facts reveal"><div><dt>Methods</dt><dd>IPhaB POD, SPOD, conditional POD</dd></div><div><dt>Applications</dt><dd>Shock oscillations, TBLs, aero-optics</dd></div><div><dt>Venues</dt><dd>JFM, AIAA Journal</dd></div></dl>
+      </div>
     </header>
-    <article class="prose">
+
+    <section class="page-body streams-light">
+      <div class="wrap">
+        <article class="prose">
+
 
       <h2>Intrinsic phase-based POD (IPhaB POD)</h2>
       <p>Many flows have a dominant large-scale cycle that isn't perfectly periodic. IPhaB POD extracts that intrinsic phase from the data and decomposes the flow relative to it, which gives modes that show how structures interact over the cycle. We demonstrated it on the pulsating shock system over a spike-tipped cylinder, then used it to study how coherent structures in turbulent boundary layers interact with separation.</p>
@@ -43,16 +62,27 @@
         <p><strong>A. Borra</strong>, T. Saxton-Fox. <em>Proper orthogonal decomposition for a turbulent boundary layer with aero-optic distortion.</em> AIAA Journal, 2022. <a href="https://doi.org/10.2514/1.J061120">doi</a></p>
       </div>
 
-    </article>
-    <nav class="next">
-      <a href="pressure-gradient-tbl.html">← Turbulent boundary layer separation</a>
-      <a href="propeller-wakes.html">Propellers that mitigate tip vortex roll-up →</a>
-    </nav>
+    
+        </article>
+      </div>
+    </section>
+
+    <section class="next-band">
+      <div class="wrap">
+        <div class="label">Next project</div>
+        <a href="propeller-wakes.html"><span class="display">Propellers that mitigate tip vortex roll-up <em>→</em></span></a>
+      </div>
+    </section>
   </main>
-  <footer>
-    <div class="wrap">
-      <span>© 2026 Akhileshwar Borra</span>
-      <a href="../index.html">Back to home</a>
+
+  <footer class="finale-wrap" id="contact">
+    <div class="finale on-dark streams-dark">
+      <h2 class="display reveal">Always following<br>the <em>flow.</em></h2>
+      <div class="contact reveal">
+        <a class="btn-light" href="mailto:akhil.borra@gmail.com">Email me <i>↗</i></a>
+        <a class="btn-ghost" href="../index.html#work">All projects</a>
+      </div>
+      <div class="legal"><span>© 2026 Akhileshwar Borra</span><span>Göttingen, Germany</span></div>
     </div>
   </footer>
 </body>

@@ -3,189 +3,258 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Akhileshwar Borra · Research</title>
-  <meta name="description" content="Akhileshwar Borra, experimental fluid dynamicist studying wind turbine wakes, atmospheric turbulence and turbulent boundary layers.">
+  <title>Akhileshwar Borra · Experimental Fluid Dynamics</title>
+  <meta name="description" content="Akhileshwar Borra, experimental fluid dynamicist at the Max Planck Institute for Dynamics and Self-Organization, measuring turbulence from the wind tunnel to the wind farm.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <script defer src="assets/js/site.js?v=4"></script>
 </head>
 <body>
-  <nav class="nav">
-    <div class="wrap">
-      <a class="brand" href="#">Akhileshwar Borra</a>
-      <ul>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#publications">Publications</a></li>
-        <li class="hide-sm"><a href="#experience">Experience</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <header class="hero">
-    <div class="wrap grid">
-      <div>
-        <div class="eyebrow">Experimental fluid dynamics · Wind energy</div>
-        <h1>Measuring turbulence from the wind tunnel to the wind farm.</h1>
-        <p class="lede">I'm a postdoctoral researcher in the Turbulence and Wind Energy group at the Max Planck Institute for Dynamics and Self-Organization. I build measurement systems that follow the flow, from helium-filled soap bubbles in the tip vortices of a full-scale turbine to drone-launched balloons drifting through wind farms, to understand how wind turbines interact with the atmosphere.</p>
-        <div class="links">
-          <a class="btn primary" href="#projects">See projects</a>
-          <a class="btn" href="mailto:akhil.borra@gmail.com">Email</a>
-        </div>
-      </div>
-      <figure>
-        <img src="assets/img/lpt-setup.jpg" alt="Field setup at the Aventa 6.5 kW wind turbine in Winterthur with drone-lifted bubble generator, high-speed cameras and xenon arc lamp">
-        <figcaption>Field-scale particle tracking setup at the OST Aventa 6.5 kW turbine, Winterthur.</figcaption>
-      </figure>
-    </div>
+  <header class="topbar">
+    <a class="pill" href="mailto:akhil.borra@gmail.com"><span class="mono">AB</span>Get in touch</a>
+    <button class="menu-btn" type="button" data-menu-open aria-label="Open menu"><span></span><span></span></button>
   </header>
 
-  <section>
-    <div class="wrap">
-      <div class="section-head"><h2>Research interests</h2></div>
-      <ul class="tags">
-        <li>Wind turbine wakes &amp; tip vortices</li>
-        <li>Atmospheric boundary layer</li>
-        <li>Lagrangian particle tracking</li>
-        <li>Field measurement campaigns</li>
-        <li>Rotor aerodynamics at high Reynolds number</li>
-        <li>Turbulent boundary layer separation</li>
-        <li>Particle image velocimetry</li>
-        <li>Modal analysis (POD, SPOD)</li>
-      </ul>
+  <div class="menu" id="menu" role="dialog" aria-label="Site menu">
+    <div class="menu-top">
+      <span class="label">Akhileshwar Borra</span>
+      <button class="btn-square" type="button" data-menu-close aria-label="Close menu">×</button>
     </div>
-  </section>
+    <nav>
+      <a href="#work"><small>01</small>Projects</a>
+      <a href="#field"><small>02</small>Field &amp; Lab</a>
+      <a href="#publications"><small>03</small>Publications</a>
+      <a href="#career"><small>04</small>Career</a>
+      <a href="#contact"><small>05</small>Contact</a>
+    </nav>
+    <div class="menu-foot">
+      <a href="mailto:akhil.borra@gmail.com">akhil.borra@gmail.com</a>
+      <span class="label">Max Planck Institute for Dynamics and Self-Organization</span>
+    </div>
+  </div>
 
-  <section id="projects">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Projects</h2>
-        <p>Max Planck Institute (2025–) and University of Illinois (2019–2024)</p>
+  <main>
+    <!-- Hero: the animated field setup -->
+    <section class="hero streams-light" aria-label="Introduction">
+      <model-viewer id="hero-model" src="assets/models/lpt-setup.glb?v=2" alt="Animated 3D model of the field particle-tracking setup: a wind turbine, its tip-vortex helix, and helium-filled soap bubbles released by a drone"
+        autoplay auto-rotate rotation-per-second="6deg" interaction-prompt="none" disable-tap
+        camera-target="2m 11m 2m" camera-orbit="-48deg 74deg 44m" field-of-view="38deg"
+        min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto"
+        shadow-intensity="0.5" exposure="1.05" data-ground="none" touch-action="pan-y"></model-viewer>
+      <div class="hero-meta">
+        <div class="label">Postdoctoral researcher</div>
+        <div class="label">Max Planck Institute · Göttingen</div>
       </div>
-      <div class="cards">
-        <a class="card" href="projects/field-lpt.html">
-          <span class="badge">3D model</span>
-          <div class="thumb" style="background-image:url(assets/img/lpt-night.jpg)"></div>
-          <div class="body">
-            <div class="meta">MPI-DS · 2025–present</div>
-            <h3>Field-scale particle tracking of tip vortices</h3>
-            <p>Helium-filled soap bubbles, a drone-tethered bubble generator and four high-speed cameras resolve the 3D flow behind a full-scale wind turbine.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
-        <a class="card" href="projects/balloon-tracers.html">
-          <span class="badge">3D model</span>
-          <div class="thumb" style="background-image:url(assets/img/balloon-system.jpg)"></div>
-          <div class="body">
-            <div class="meta">MPI-DS · TORQUE 2026</div>
-            <h3>Balloons as Lagrangian tracers in wind farms</h3>
-            <p>Drone-released, sensor-carrying balloons drift through wind farms to measure wake–atmosphere interaction from the flow's own perspective.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
-        <a class="card" href="projects/pressurized-tunnel.html">
-          <div class="thumb contain" style="background-image:url(assets/img/vdtt-cp.jpg)"></div>
-          <div class="body">
-            <div class="meta">MPI-DS · 2025–present</div>
-            <h3>Rotor performance at high Reynolds number</h3>
-            <p>Power and thrust of a model wind turbine across Reynolds number and blade pitch in a pressurized wind tunnel, benchmarked against OpenFAST.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
-        <a class="card" href="projects/pressure-gradient-tbl.html">
-          <div class="thumb" style="background-image:url(assets/img/tbl-tunnel.jpg)"></div>
-          <div class="body">
-            <div class="meta">UIUC · PhD dissertation</div>
-            <h3>Turbulent boundary layer separation</h3>
-            <p>How the history of favorable and adverse pressure gradients over a bump and a ramp shapes when and how a turbulent boundary layer separates.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
-        <a class="card" href="projects/modal-analysis.html">
-          <div class="thumb contain" style="background-image:url(assets/img/modal-spod.jpg)"></div>
-          <div class="body">
-            <div class="meta">UIUC · JFM 2025, AIAA J 2022</div>
-            <h3>Modal analysis for fluid flows</h3>
-            <p>Intrinsic phase-based POD (IPhaB POD) and conditional POD to extract physically interpretable structures from near-periodic and turbulent flows.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
-        <a class="card" href="projects/propeller-wakes.html">
-          <div class="thumb text">Propeller wakes &amp;<br>blade–vortex interaction</div>
-          <div class="body">
-            <div class="meta">UIUC · AIAA SciTech 2023</div>
-            <h3>Propellers that mitigate tip vortex roll-up</h3>
-            <p>Phase-locked stereo PIV of thrust-optimized and wake-optimized propeller wakes, and their interaction with a downstream airfoil.</p>
-            <span class="more">Read more →</span>
-          </div>
-        </a>
+      <div class="hero-copy">
+        <div>
+          <h1 class="display hero-name">Akhileshwar<br>Borra</h1>
+          <p class="hero-sub"><strong>Experimental fluid dynamics &amp; wind energy.</strong> Above: our field setup, with bubble paths from a particle simulation drifting through a turbine's tip vortices.</p>
+        </div>
+        <div class="hero-tools">
+          <button class="lock-btn" type="button" data-lock="hero-model" aria-pressed="false"><span>Explore in 3D</span><i>↻</i></button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="publications">
-    <div class="wrap">
-      <div class="section-head"><h2>Publications</h2></div>
-      <ol class="pubs">
-        <li>
-          <div class="title">A Lagrangian tracer system using balloons to study wind farm interactions with the atmospheric boundary layer</div>
-          <div class="authors"><span class="me">A. Borra</span>, F. Falkinhoff, M. Grunwald, G. Bagheri, E. Bodenschatz, C. E. Brunner</div>
-          <div class="venue"><em>Journal of Physics: Conference Series</em> (TORQUE), 2026 · <a href="https://doi.org/10.1088/1742-6596/3224/3/032122">doi</a></div>
-        </li>
-        <li>
-          <div class="title">Intrinsic phase-based proper orthogonal decomposition (IPhaB POD): a method for physically interpretable modes in near-periodic systems</div>
-          <div class="authors"><span class="me">A. Borra</span>, Z. Flynn, A. Goza, T. Saxton-Fox</div>
-          <div class="venue"><em>Journal of Fluid Mechanics</em>, 2025 · <a href="https://doi.org/10.1017/jfm.2024.1061">doi</a></div>
-        </li>
-        <li>
-          <div class="title">Turbulent boundary layer separation and its driving factors</div>
-          <div class="authors"><span class="me">A. Borra</span></div>
-          <div class="venue"><em>PhD dissertation</em>, University of Illinois Urbana-Champaign, 2024</div>
-        </li>
-        <li>
-          <div class="title">Comparison of a turbulent boundary layer encountering a ramp versus a bump</div>
-          <div class="authors"><span class="me">A. Borra</span>, T. Saxton-Fox</div>
-          <div class="venue"><em>Turbulence and Shear Flow Phenomena (TSFP)</em>, 2024</div>
-        </li>
-        <li>
-          <div class="title">Design of propellers with passive mitigation of coherent tip vortex roll-up</div>
-          <div class="authors">T. Kopperstad, <span class="me">A. Borra</span>, A. Beusse, C. Kim, E. Torres De Jesus, T. Saxton-Fox, P. Ansell</div>
-          <div class="venue"><em>AIAA SciTech Forum</em>, 2023 · <a href="https://doi.org/10.2514/6.2023-2614">doi</a></div>
-        </li>
-        <li>
-          <div class="title">Proper orthogonal decomposition for a turbulent boundary layer with aero-optic distortion</div>
-          <div class="authors"><span class="me">A. Borra</span>, T. Saxton-Fox</div>
-          <div class="venue"><em>AIAA Journal</em>, 2022 · <a href="https://doi.org/10.2514/1.J061120">doi</a></div>
-        </li>
-      </ol>
-    </div>
-  </section>
+    <!-- Statement -->
+    <section class="statement on-dark streams-dark" id="about">
+      <div class="wrap">
+        <div class="label reveal">Research</div>
+        <h2 class="display reveal">Measuring turbulence from the wind tunnel to the <em>wind farm.</em></h2>
+        <p class="lead reveal">I'm a postdoctoral researcher in the Turbulence and Wind Energy group at the Max Planck Institute for Dynamics and Self-Organization. I build measurement systems that follow the flow, from helium-filled soap bubbles in the tip vortices of a full-scale turbine to drone-launched balloons drifting through wind farms, to understand how wind turbines interact with the atmosphere.</p>
 
-  <section id="experience">
-    <div class="wrap">
-      <div class="section-head"><h2>Experience &amp; education</h2></div>
-      <div class="timeline">
-        <div class="row"><div class="when">2025 – present</div><div class="what"><strong>Postdoctoral Researcher, Max Planck Institute for Dynamics and Self-Organization</strong><span>Turbulence and Wind Energy group (Dr. Claudia Brunner), Göttingen</span></div></div>
-        <div class="row"><div class="when">2019 – 2024</div><div class="what"><strong>PhD, Aerospace Engineering, University of Illinois Urbana-Champaign</strong><span>Turbulent Dynamics Research Group (Dr. Theresa Saxton-Fox) · Outstanding Graduate Student Award (2023), GAANN Fellow (2022)</span></div></div>
-        <div class="row"><div class="when">Summer 2023</div><div class="what"><strong>Technical Aide, Johns Hopkins University Applied Physics Laboratory</strong><span>Thermal Analysis and Test Team: CFD and ablation modeling of plasma-facility tests</span></div></div>
-        <div class="row"><div class="when">2018 – 2019</div><div class="what"><strong>Project Engineer, Belcan Engineering (Collins Aerospace)</strong><span>F/A-18 valve improvement projects, test procedures and qualification</span></div></div>
-        <div class="row"><div class="when">2018</div><div class="what"><strong>BSc, Mechanical Engineering, University of Massachusetts Amherst</strong><span>Undergraduate research on vortex-induced vibration in the Fluid Structure Interaction Lab</span></div></div>
+        <div class="editorial">
+          <figure class="ed-1 reveal">
+            <img src="assets/img/lpt-setup.jpg" alt="Field setup at the Aventa 6.5 kW turbine in Winterthur" loading="lazy">
+            <figcaption class="label">Winterthur, CH · Particle tracking campaign</figcaption>
+          </figure>
+          <figure class="ed-2 reveal">
+            <img src="assets/img/balloon-system.jpg" alt="Drone carrying balloon tracers near wind turbines" loading="lazy">
+            <figcaption class="label">WINSENT test site, DE · Balloon tracers</figcaption>
+          </figure>
+          <figure class="ed-quote reveal">
+            <blockquote>Wind tunnels can't recreate the atmosphere, so we <b>take the experiment</b> to the turbine.</blockquote>
+          </figure>
+          <figure class="ed-4 reveal">
+            <img src="assets/img/lpt-night.jpg" alt="Xenon lamp illuminating bubbles at night" loading="lazy">
+            <figcaption class="label">Winterthur, CH · Night acquisition</figcaption>
+          </figure>
+          <figure class="ed-3 reveal">
+            <img src="assets/img/tbl-tunnel.jpg" alt="Boundary layer wind tunnel with PIV optics" loading="lazy">
+            <figcaption class="label">Urbana, IL · Boundary layer tunnel</figcaption>
+          </figure>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="contact">
-    <div class="wrap">
-      <div class="section-head"><h2>Contact</h2></div>
-      <p>I'm always happy to talk about field measurements, wind energy and turbulence. The best way to reach me is by email at <a href="mailto:akhil.borra@gmail.com">akhil.borra@gmail.com</a>.</p>
-    </div>
-  </section>
+    <!-- Field / Lab -->
+    <section class="split streams-light" id="field">
+      <div class="wrap split-grid">
+        <div class="split-col reveal">
+          <h2 class="display"><em>In the</em>Field</h2>
+          <p>Full-scale measurements at operating wind turbines and wind farms, where the inflow is real atmospheric turbulence.</p>
+          <ul>
+            <li><a href="projects/field-lpt.html">Particle tracking of tip vortices <span>2025 –</span></a></li>
+            <li><a href="projects/balloon-tracers.html">Balloon tracers in wind farms <span>2025 –</span></a></li>
+          </ul>
+          <img class="shot" src="assets/img/balloon-winsent.jpg" alt="Research turbines and met masts at the WINSENT test site" loading="lazy">
+        </div>
+        <div class="split-col reveal">
+          <h2 class="display"><em>In the</em>Lab</h2>
+          <p>Controlled wind tunnel experiments, from pressurized rotor testing to boundary layers, wakes and the methods to analyze them.</p>
+          <ul>
+            <li><a href="projects/pressurized-tunnel.html">Rotor performance at high Reynolds number <span>2025 –</span></a></li>
+            <li><a href="projects/pressure-gradient-tbl.html">Turbulent boundary layer separation <span>2019 – 24</span></a></li>
+            <li><a href="projects/modal-analysis.html">Modal analysis for fluid flows <span>2020 – 25</span></a></li>
+            <li><a href="projects/propeller-wakes.html">Propeller wakes <span>2021 – 23</span></a></li>
+          </ul>
+          <img class="shot" src="assets/img/tbl-cad.jpg" alt="CAD of the boundary layer test section" loading="lazy">
+        </div>
+      </div>
+    </section>
 
-  <footer>
-    <div class="wrap">
-      <span>© 2026 Akhileshwar Borra</span>
-      <span>Max Planck Institute for Dynamics and Self-Organization</span>
+    <!-- Work grid -->
+    <section class="work on-dark" id="work">
+      <div class="wrap">
+        <div class="work-head">
+          <h2 class="display reveal">Selected<br><em>projects</em></h2>
+          <p class="reveal">Six projects across field campaigns, wind tunnels and data analysis, each with figures, methods and the papers behind them.</p>
+        </div>
+        <div class="tiles">
+          <a class="tile reveal" href="projects/field-lpt.html">
+            <img src="assets/img/lpt-render.jpg" alt="" loading="lazy">
+            <span class="chip">3D model</span>
+            <span class="tag"><b>Field-scale particle tracking</b><span>2025</span></span>
+          </a>
+          <a class="tile reveal" href="projects/balloon-tracers.html">
+            <img src="assets/img/balloon-tracks.jpg" alt="" loading="lazy">
+            <span class="chip">3D model</span>
+            <span class="tag"><b>Balloon tracers</b><span>2026</span></span>
+          </a>
+          <a class="tile contain reveal" href="projects/pressurized-tunnel.html">
+            <img src="assets/img/vdtt-cp.jpg" alt="" loading="lazy">
+            <span class="tag"><b>Rotors at high Reynolds number</b><span>2025</span></span>
+          </a>
+          <a class="tile reveal" href="projects/pressure-gradient-tbl.html">
+            <img src="assets/img/tbl-mean.jpg" alt="" loading="lazy">
+            <span class="tag"><b>Boundary layer separation</b><span>2024</span></span>
+          </a>
+          <a class="tile contain reveal" href="projects/modal-analysis.html">
+            <img src="assets/img/modal-spod.jpg" alt="" loading="lazy">
+            <span class="tag"><b>Modal analysis · IPhaB POD</b><span>2025</span></span>
+          </a>
+          <a class="tile text-tile reveal" href="projects/propeller-wakes.html">
+            <span class="big">Propellers that mitigate tip vortex roll-up</span>
+            <span class="tag"><b>Propeller wakes</b><span>2023</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Publications -->
+    <section class="pubs-sec" id="publications">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 class="display reveal">Publi&shy;cations</h2>
+          <p class="reveal">Journal papers, conference papers and my dissertation.</p>
+        </div>
+        <ol class="pub-list">
+          <li class="reveal">
+            <div class="yr">2026</div>
+            <div><div class="t">A Lagrangian tracer system using balloons to study wind farm interactions with the atmospheric boundary layer</div>
+              <div class="a"><b>A. Borra</b>, F. Falkinhoff, M. Grunwald, G. Bagheri, E. Bodenschatz, C. E. Brunner</div>
+              <div class="v">Journal of Physics: Conference Series (TORQUE)</div></div>
+            <a class="go" href="https://doi.org/10.1088/1742-6596/3224/3/032122">DOI ↗</a>
+          </li>
+          <li class="reveal">
+            <div class="yr">2025</div>
+            <div><div class="t">Intrinsic phase-based proper orthogonal decomposition (IPhaB POD): a method for physically interpretable modes in near-periodic systems</div>
+              <div class="a"><b>A. Borra</b>, Z. Flynn, A. Goza, T. Saxton-Fox</div>
+              <div class="v">Journal of Fluid Mechanics</div></div>
+            <a class="go" href="https://doi.org/10.1017/jfm.2024.1061">DOI ↗</a>
+          </li>
+          <li class="reveal">
+            <div class="yr">2024</div>
+            <div><div class="t">Turbulent boundary layer separation and its driving factors</div>
+              <div class="a"><b>A. Borra</b></div>
+              <div class="v">PhD dissertation, University of Illinois Urbana-Champaign</div></div>
+            <span></span>
+          </li>
+          <li class="reveal">
+            <div class="yr">2024</div>
+            <div><div class="t">Comparison of a turbulent boundary layer encountering a ramp versus a bump</div>
+              <div class="a"><b>A. Borra</b>, T. Saxton-Fox</div>
+              <div class="v">Turbulence and Shear Flow Phenomena (TSFP)</div></div>
+            <span></span>
+          </li>
+          <li class="reveal">
+            <div class="yr">2023</div>
+            <div><div class="t">Design of propellers with passive mitigation of coherent tip vortex roll-up</div>
+              <div class="a">T. Kopperstad, <b>A. Borra</b>, A. Beusse, C. Kim, E. Torres De Jesus, T. Saxton-Fox, P. Ansell</div>
+              <div class="v">AIAA SciTech Forum</div></div>
+            <a class="go" href="https://doi.org/10.2514/6.2023-2614">DOI ↗</a>
+          </li>
+          <li class="reveal">
+            <div class="yr">2022</div>
+            <div><div class="t">Proper orthogonal decomposition for a turbulent boundary layer with aero-optic distortion</div>
+              <div class="a"><b>A. Borra</b>, T. Saxton-Fox</div>
+              <div class="v">AIAA Journal</div></div>
+            <a class="go" href="https://doi.org/10.2514/1.J061120">DOI ↗</a>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Career -->
+    <section class="career" id="career">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 class="display reveal">Career</h2>
+          <p class="reveal">From valve qualification for the F/A-18 to field campaigns at wind turbines.</p>
+        </div>
+        <div class="career-list">
+          <div class="career-row reveal"><div class="when">2025 – Present</div><div class="role">Postdoctoral Researcher</div><div class="where">Max Planck Institute for Dynamics and Self-Organization · Turbulence and Wind Energy (Dr. Claudia Brunner)</div></div>
+          <div class="career-row reveal"><div class="when">2019 – 2024</div><div class="role">PhD, Aerospace Engineering</div><div class="where">University of Illinois Urbana-Champaign · Turbulent Dynamics Research Group (Dr. Theresa Saxton-Fox). Outstanding Graduate Student Award 2023, GAANN Fellow 2022</div></div>
+          <div class="career-row reveal"><div class="when">Summer 2023</div><div class="role">Technical Aide</div><div class="where">Johns Hopkins University Applied Physics Laboratory · Thermal Analysis and Test</div></div>
+          <div class="career-row reveal"><div class="when">2018 – 2019</div><div class="role">Project Engineer</div><div class="where">Belcan Engineering, contracted to Collins Aerospace</div></div>
+          <div class="career-row reveal"><div class="when">2018</div><div class="role">BSc, Mechanical Engineering</div><div class="where">University of Massachusetts Amherst · Fluid Structure Interaction Lab</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Finale footer -->
+  <footer class="finale-wrap" id="contact">
+    <div class="finale on-dark streams-dark">
+      <h2 class="display reveal">Always following<br>the <em>flow.</em></h2>
+      <div class="contact reveal">
+        <a class="btn-light" href="mailto:akhil.borra@gmail.com">Email me <i>↗</i></a>
+        <a class="btn-ghost" href="https://github.com/akhilborra">GitHub</a>
+      </div>
+      <div class="finale-cols">
+        <div>
+          <div class="label">Pages</div>
+          <a href="#work">Projects</a>
+          <a href="#publications">Publications</a>
+          <a href="#career">Career</a>
+        </div>
+        <div>
+          <div class="label">Field work</div>
+          <a href="projects/field-lpt.html">Particle tracking</a>
+          <a href="projects/balloon-tracers.html">Balloon tracers</a>
+          <a href="projects/pressurized-tunnel.html">Pressurized tunnel</a>
+        </div>
+      </div>
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>Max Planck Institute for Dynamics and Self-Organization</span><span>Technical University of Munich</span><span>University of Illinois Urbana-Champaign</span><span>Johns Hopkins Applied Physics Laboratory</span><span>University of Massachusetts Amherst</span>
+          <span>Max Planck Institute for Dynamics and Self-Organization</span><span>Technical University of Munich</span><span>University of Illinois Urbana-Champaign</span><span>Johns Hopkins Applied Physics Laboratory</span><span>University of Massachusetts Amherst</span>
+        </div>
+      </div>
+      <div class="legal"><span>© 2026 Akhileshwar Borra</span><span>Göttingen, Germany</span></div>
     </div>
   </footer>
 </body>
