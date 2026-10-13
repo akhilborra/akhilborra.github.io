@@ -180,29 +180,16 @@
   ["play", "pause"].forEach(ev => mv.addEventListener(ev, syncPlay));
 
 
-  // ---------- navigation: left-drag moves the map (Move mode), Shift-drag rotates; viewpoint presets ----------
+  // ---------- navigation: drag rotates (model-viewer), Shift-drag moves the map; viewpoint presets ----------
   const VIEWS = {
     overview: ["14000m 4200m -900m", "-10deg 64deg 38000m"],
     release: ["600m 900m 0m", "-35deg 62deg 7000m"],
     farms: ["9000m 1300m -1200m", "-20deg 58deg 13000m"],
     top: ["14000m 0m -900m", "0deg 5deg 40000m"],
   };
-  let mode = "move";
-  const segBtns = box.querySelectorAll(".bx-seg button");
-  const hint = box.querySelector(".bx-hint");
-  function setMode(m) {
-    mode = m;
-    segBtns.forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
-    mv.classList.toggle("moving", m === "move");
-    mv.setAttribute("touch-action", m === "move" ? "none" : "pan-y");
-    hint.textContent = m === "move" ? "Drag to move · scroll or pinch to zoom · Shift-drag to rotate"
-                                    : "Drag to rotate · scroll or pinch to zoom · Shift-drag to move";
-  }
-  segBtns.forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
   box.querySelectorAll(".bx-views button").forEach(b => b.addEventListener("click", () => {
     const [t, o] = VIEWS[b.dataset.view]; mv.cameraTarget = t; mv.cameraOrbit = o;
   }));
-  setMode("move");
 
   let drag = null;
   const clampTarget = (x, z) => {
@@ -210,9 +197,12 @@
     const e = D.extent;
     return [Math.min(Math.max(x, e.x0), e.x1), Math.min(Math.max(z, -e.y1), -e.y0)];
   };
+  let shiftHeld = false;
+  addEventListener("keydown", e => { if (e.key === "Shift") shiftHeld = true; });
+  addEventListener("keyup", e => { if (e.key === "Shift") shiftHeld = false; });
+  addEventListener("blur", () => { shiftHeld = false; });
   mv.addEventListener("pointerdown", ev => {
-    const panning = (mode === "move") !== ev.shiftKey;
-    if (!panning || ev.button !== 0) return;
+    if (!(ev.shiftKey || shiftHeld) || ev.button !== 0) return;
     ev.stopPropagation(); ev.preventDefault();
     mv.setPointerCapture(ev.pointerId);
     drag = { id: ev.pointerId, x: ev.clientX, y: ev.clientY };
