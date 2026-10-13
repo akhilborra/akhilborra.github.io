@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rotor performance at high Reynolds number · Akhileshwar Borra</title>
+  <meta name="description" content="Reynolds number effects on the power, thrust and optimal pitch of a model wind turbine in a pressurized wind tunnel.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="../index.html">Akhileshwar Borra</a>
+      <ul>
+        <li><a href="../index.html#projects">Projects</a></li>
+        <li><a href="../index.html#publications">Publications</a></li>
+        <li class="hide-sm"><a href="../index.html#experience">Experience</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main class="wrap">
+    <div class="crumb"><a href="../index.html#projects">← All projects</a></div>
+    <header class="project-hero">
+      <div class="eyebrow" style="color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Max Planck Institute · 2025–present</div>
+      <h1>Rotor performance at high Reynolds number</h1>
+      <p class="lede">Model wind turbines in ordinary wind tunnels run at Reynolds numbers far below those of utility-scale rotors, so their performance doesn't transfer directly. A pressurized tunnel closes that gap. I'm measuring how power, thrust and optimal blade pitch change as the chord Reynolds number climbs into the millions.</p>
+      <dl class="facts"><div><dt>Facility</dt><dd>Variable Density Turbulence Tunnel</dd></div><div><dt>Measured</dt><dd>C_P, C_T vs. Re and pitch</dd></div><div><dt>Modeling</dt><dd>OpenFAST (BEM)</dd></div><div><dt>DAQ</dt><dd>LabVIEW + NI hardware</dd></div></dl>
+    </header>
+    <article class="prose">
+
+      <h2>Campaign</h2>
+      <p>I planned and ran a campaign in the Variable Density Turbulence Tunnel at MPI-DS that measured the power and thrust coefficients of a model wind turbine across Reynolds number and blade pitch angle, and built the LabVIEW acquisition pipeline that ran it.</p>
+      <figure class="fig"><img src="../assets/img/vdtt-cp.jpg" alt="Power coefficient against chord Reynolds number, colored by tip-speed ratio. Performance rises steeply at low Re before leveling off above about 2 × 10⁶." loading="lazy"><figcaption>Power coefficient against chord Reynolds number, colored by tip-speed ratio. Performance rises steeply at low Re before leveling off above about 2 × 10⁶.</figcaption></figure>
+      <h2>Optimal pitch</h2>
+      <p>The pitch angle that maximizes power also shifts with Reynolds number. That matters when lab-scale results are used to tune control strategies for real turbines.</p>
+      <figure class="fig"><img src="../assets/img/vdtt-pitch.jpg" alt="Optimal pitch angle against chord Reynolds number, colored by tip-speed ratio." loading="lazy"><figcaption>Optimal pitch angle against chord Reynolds number, colored by tip-speed ratio.</figcaption></figure>
+      <h2>Ongoing work</h2>
+      <ul>
+        <li>Designing test stands to measure the efficiency of the rotor's internal drivetrain and calibrating the strain gauges used for thrust.</li>
+        <li>Designing a new rotor in CAD, scaled from the IEA 15 MW reference turbine, for fabrication and testing.</li>
+        <li>Benchmarking an OpenFAST blade element momentum model against the measurements to quantify its prediction errors and trace their physical sources.</li>
+      </ul>
+
+    </article>
+    <nav class="next">
+      <a href="balloon-tracers.html">← Balloons as Lagrangian tracers in wind farms</a>
+      <a href="pressure-gradient-tbl.html">Turbulent boundary layer separation →</a>
+    </nav>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>© 2026 Akhileshwar Borra</span>
+      <a href="../index.html">Back to home</a>
+    </div>
+  </footer>
+</body>
+</html>

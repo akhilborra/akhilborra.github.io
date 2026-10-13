@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turbulent boundary layer separation · Akhileshwar Borra</title>
+  <meta name="description" content="Experimental study of how spatially varying pressure gradient history drives turbulent boundary layer separation over a bump and a ramp.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="../index.html">Akhileshwar Borra</a>
+      <ul>
+        <li><a href="../index.html#projects">Projects</a></li>
+        <li><a href="../index.html#publications">Publications</a></li>
+        <li class="hide-sm"><a href="../index.html#experience">Experience</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main class="wrap">
+    <div class="crumb"><a href="../index.html#projects">← All projects</a></div>
+    <header class="project-hero">
+      <div class="eyebrow" style="color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">University of Illinois · PhD dissertation, 2024</div>
+      <h1>Turbulent boundary layer separation</h1>
+      <p class="lede">Pressure gradients speed up or slow down turbulent boundary layers on wings, blades and vehicles, and can drive them to separate. My dissertation asked how the history of those gradients, not just their local strength, changes separation. I compared two geometries that impose very different sequences of favorable and adverse pressure gradient.</p>
+      <dl class="facts"><div><dt>Geometries</dt><dd>Gaussian bump vs. ramp</dd></div><div><dt>Freestream</dt><dd>7.5, 10, 15 m/s</dd></div><div><dt>Re_θ</dt><dd>2,347 – 6,217</dd></div><div><dt>Methods</dt><dd>Planar PIV, pressure taps, RANS</dd></div></dl>
+    </header>
+    <article class="prose">
+
+      <h2>Setup</h2>
+      <p>A symmetric Gaussian bump and a downward-facing ramp were tested in turn on a flat plate in a boundary layer wind tunnel. The bump imposes mild adverse, strong favorable, then strong adverse pressure gradient before recovering. The ramp imposes weak favorable, favorable, then strong adverse. I designed and built the test articles and fixtures.</p>
+      <div class="fig-grid"><figure class="fig"><img src="../assets/img/tbl-cad.jpg" alt="CAD of the flat plate and test geometry in the tunnel test section." loading="lazy"><figcaption>CAD of the flat plate and test geometry in the tunnel test section.</figcaption></figure><figure class="fig"><img src="../assets/img/tbl-tunnel.jpg" alt="The setup in the wind tunnel with PIV optics." loading="lazy"><figcaption>The setup in the wind tunnel with PIV optics.</figcaption></figure></div>
+      <h2>Measurements</h2>
+      <p>Planar particle image velocimetry captured the boundary layer upstream of and over each geometry, and pressure transducers measured the gradients imposed. The Clauser parameter reached β₀ ≈ −5.4 in the bump's favorable region and up to 3.4 in the adverse regions. Six cases (two geometries × three speeds) cover Re_τ from 889 to 2,920.</p>
+      <figure class="fig"><img src="../assets/img/tbl-mean.jpg" alt="Mean streamwise velocity over the ramp, showing the separated shear layer." loading="lazy"><figcaption>Mean streamwise velocity over the ramp, showing the separated shear layer.</figcaption></figure>
+      <h2>Coherent structures</h2>
+      <p>Spectral POD of the velocity fields picks out the large-scale structures that convect through each pressure gradient region and shows how their strength and wall-normal position change with gradient history. ANSYS Fluent RANS simulations of the same geometries tested how well RANS predicts smooth-body separation.</p>
+      <figure class="fig"><img src="../assets/img/tbl-spod.jpg" alt="Leading SPOD mode over the bump at 15 m/s." loading="lazy"><figcaption>Leading SPOD mode over the bump at 15 m/s.</figcaption></figure>
+      <div class="callout"><p><strong>Related:</strong> A. Borra, T. Saxton-Fox. <em>Comparison of a turbulent boundary layer encountering a ramp versus a bump.</em> TSFP 2024. Advised by Dr. Theresa Saxton-Fox.</p></div>
+
+    </article>
+    <nav class="next">
+      <a href="pressurized-tunnel.html">← Rotor performance at high Reynolds number</a>
+      <a href="modal-analysis.html">Modal analysis for fluid flows →</a>
+    </nav>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>© 2026 Akhileshwar Borra</span>
+      <a href="../index.html">Back to home</a>
+    </div>
+  </footer>
+</body>
+</html>

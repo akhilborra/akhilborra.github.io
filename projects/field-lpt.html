@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Field-scale particle tracking of tip vortices · Akhileshwar Borra</title>
+  <meta name="description" content="Lagrangian particle tracking with helium-filled soap bubbles in the wake of a full-scale wind turbine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="../index.html">Akhileshwar Borra</a>
+      <ul>
+        <li><a href="../index.html#projects">Projects</a></li>
+        <li><a href="../index.html#publications">Publications</a></li>
+        <li class="hide-sm"><a href="../index.html#experience">Experience</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main class="wrap">
+    <div class="crumb"><a href="../index.html#projects">← All projects</a></div>
+    <header class="project-hero">
+      <div class="eyebrow" style="color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Max Planck Institute · 2025–present</div>
+      <h1>Field-scale particle tracking of tip vortices</h1>
+      <p class="lede">Tip vortices set both how much power the outer blade produces and how the wake develops downstream, yet almost nothing is known about how real atmospheric turbulence affects their formation and breakdown. I developed a field-scale Lagrangian particle tracking system to measure them directly behind an operating turbine.</p>
+      <dl class="facts"><div><dt>Turbine</dt><dd>OST Aventa 6.5 kW, Winterthur (CH)</dd></div><div><dt>Rotor</dt><dd>12.8 m diameter, 18 m hub</dd></div><div><dt>Measurement volume</dt><dd>≈ 8 × 10 × 6 m</dd></div><div><dt>Acquisition</dt><dd>4 Phantom VEO4K-990 at 900 Hz</dd></div></dl>
+    </header>
+    <article class="prose">
+
+      <h2>Why field measurements</h2>
+      <p>Wind tunnels cannot reproduce the Reynolds numbers and large-scale features of atmospheric turbulence, so most tip vortex studies use laminar or unrealistic turbulent inflow. Commercial field instruments like anemometers and LiDAR lack either the spatial coverage or the temporal resolution to resolve vortex dynamics. Tracking particles in the field fills that gap.</p>
+      <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake." loading="lazy"><figcaption>The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake.</figcaption></figure>
+      <h2>The system</h2>
+      <ul>
+        <li><strong>Seeding.</strong> Helium-filled soap bubbles (HFSB) from a custom bubble generator, which I designed and built to be lifted to hub height by a DJI Matrice 350 drone.</li>
+        <li><strong>Illumination.</strong> Sunlight during the day, or a 10 kW xenon arc lamp at night. Each bubble shows up as bright glare points that the cameras can track.</li>
+        <li><strong>Imaging.</strong> Four synchronized Phantom VEO4K-990 cameras whose shared field of view sits 15 m above the ground in the near wake.</li>
+        <li><strong>Processing.</strong> 3D trajectories reconstructed with the open-source OpenLPT framework to characterize tip vortex dynamics and breakdown.</li>
+      </ul>
+      <div class="fig-grid"><figure class="fig"><img src="../assets/img/lpt-render.jpg" alt="Schematic of the measurement volume, cameras, LEDs and bubble generator relative to the rotor." loading="lazy"><figcaption>Schematic of the measurement volume, cameras, LEDs and bubble generator relative to the rotor.</figcaption></figure><figure class="fig"><img src="../assets/img/lpt-night.jpg" alt="Night operation: the xenon lamp lights up bubbles drifting through the measurement volume." loading="lazy"><figcaption>Night operation: the xenon lamp lights up bubbles drifting through the measurement volume.</figcaption></figure></div>
+      <h2>Campaign</h2>
+      <p>I led the field campaign at the OST turbine, from test planning through on-site execution, and the February 2026 data are now being processed into 3D Lagrangian tracks. The work was presented at the <em>Recent Advances in Turbulent Wind Farm Dynamics</em> colloquium in London (2026).</p>
+      <figure class="fig"><img src="../assets/img/lpt-frame.jpg" alt="A frame from the high-speed recordings with the turbine and illuminated tracer bubbles." loading="lazy"><figcaption>A frame from the high-speed recordings with the turbine and illuminated tracer bubbles.</figcaption></figure>
+      <div class="callout"><p>In collaboration with Mano Grunwald and Claudia Brunner (MPI-DS).</p></div>
+
+    </article>
+    <nav class="next">
+      <a href="propeller-wakes.html">← Propellers that mitigate tip vortex roll-up</a>
+      <a href="balloon-tracers.html">Balloons as Lagrangian tracers in wind farms →</a>
+    </nav>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>© 2026 Akhileshwar Borra</span>
+      <a href="../index.html">Back to home</a>
+    </div>
+  </footer>
+</body>
+</html>
