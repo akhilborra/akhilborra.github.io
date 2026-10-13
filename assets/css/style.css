@@ -155,3 +155,18 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   .nav ul { gap: 16px; }
   .nav ul a { font-size: .88rem; }
 }
+
+/* Interactive 3D viewers */
+figure.viewer { margin: 32px 0; }
+figure.viewer model-viewer {
+  width: 100%; height: min(70vh, 560px);
+  border-radius: 12px; border: 1px solid var(--line);
+  background: linear-gradient(#bcd3e6, #eef3f7);
+  --poster-color: transparent;
+}
+@media (max-width: 600px) { figure.viewer model-viewer { height: 420px; } }
+.viewer-hint { display: flex; align-items: center; justify-content: center; height: 100%; color: #45535b; font-size: .9rem; }
+figure.viewer figcaption { font-size: .86rem; color: var(--muted); margin-top: 8px; }
+.badge { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-right: 6px; }
+.card .badge { position: absolute; top: 12px; left: 12px; margin: 0; background: rgba(255,255,255,.92); color: #0e6b74; }
+.card { position: relative; }

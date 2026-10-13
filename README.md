@@ -7,6 +7,8 @@ index.html              Home: intro, project cards, publications, experience, co
 projects/*.html         One page per project
 assets/css/style.css    All styling (light + dark mode)
 assets/img/             Figures (resized JPEGs)
+assets/models/          3D models (.glb) shown with <model-viewer>
+tools/                  Blender scripts that exported the .glb models
 ```
 
 ## Preview locally
@@ -35,3 +37,15 @@ Then open http://localhost:8000.
 
 - To add a project, copy one of the pages in `projects/`, then add a matching `<a class="card">` block to `index.html`.
 - To add a CV, put it at `assets/Borra_CV.pdf` and add `<a class="btn" href="assets/Borra_CV.pdf">CV</a>` to the hero links in `index.html`.
+
+## 3D models
+
+The two interactive models were exported from the Blender scenes with the scripts in `tools/`
+(grass instances removed, particles baked, Draco-compressed). To re-export after editing a scene:
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b "path/to/main_APS_static_animation5.blend" --python tools/export_bubble.py -- assets/models/lpt-setup.glb
+/Applications/Blender.app/Contents/MacOS/Blender -b "path/to/wind_farm.blend" --python tools/export_farm.py -- assets/models/balloon-farm.glb
+```
+
+The scripts only modify the scene in memory; the .blend files are not saved.

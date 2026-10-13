@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <nav class="nav">
@@ -35,6 +36,14 @@
       <h2>Why field measurements</h2>
       <p>Wind tunnels cannot reproduce the Reynolds numbers and large-scale features of atmospheric turbulence, so most tip vortex studies use laminar or unrealistic turbulent inflow. Commercial field instruments like anemometers and LiDAR lack either the spatial coverage or the temporal resolution to resolve vortex dynamics. Tracking particles in the field fills that gap.</p>
       <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake." loading="lazy"><figcaption>The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake.</figcaption></figure>
+      <h2>Explore the setup</h2>
+      <figure class="viewer">
+        <model-viewer src="../assets/models/lpt-setup.glb" alt="3D model of the field particle-tracking setup at the wind turbine" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="0m 14m 2m" camera-orbit="-50deg 78deg 48m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
+          <div class="viewer-hint" slot="poster">Loading 3D model…</div>
+        </model-viewer>
+        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. The drone-lifted generator seeds bubbles upstream; the red volume is where all four cameras overlap, and the rings sketch the tip vortex helix. Bubbles are drawn larger than life (real ones are ~2.5 cm) so they're visible.</figcaption>
+      </figure>
+
       <h2>The system</h2>
       <ul>
         <li><strong>Seeding.</strong> Helium-filled soap bubbles (HFSB) from a custom bubble generator, which I designed and built to be lifted to hub height by a DJI Matrice 350 drone.</li>
