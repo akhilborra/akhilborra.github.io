@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=6">
+  <link rel="stylesheet" href="../assets/css/style.css?v=7">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=5"></script>
-  <script defer src="../assets/js/pipeline.js?v=7"></script>
+  <script defer src="../assets/js/pipeline.js?v=10"></script>
 </head>
 <body>
   <header class="topbar">
@@ -91,13 +91,13 @@
         </div>
         <div class="step reveal">
           <div class="step-text"><span class="step-n">03</span><h3>Track</h3>
-            <p>Positions are linked from frame to frame into Lagrangian trajectories. Bubbles caught by a passing tip vortex loop around its core as they are carried downstream.</p></div>
+            <p>Positions are linked from frame to frame into Lagrangian trajectories. Atmospheric turbulence makes every path wander, while bubbles caught by a passing tip vortex loop coherently around its core as they are carried downstream.</p></div>
           <canvas data-step="track" aria-label="Animated schematic of looping particle tracks around a passing tip vortex"></canvas>
         </div>
         <div class="step reveal">
-          <div class="step-text"><span class="step-n">04</span><h3>Vortex</h3>
-            <p>Idealized, the tip vortex is a line carried downstream by the flow, with a bubble or two orbiting it. Seen along the vortex axis, their trajectories circle the core. Fitting a vortex model to them gives the core position, core radius r<sub>c</sub> and circulation Γ, and how they change as the vortex breaks down.</p></div>
-          <canvas data-step="vortex" aria-label="Animated schematic of a vortex line advected downstream, then viewed along its axis with two bubbles circling the core"></canvas>
+          <div class="step-text"><span class="step-n">04</span><h3>Extracting the tip vortex from trajectories</h3>
+            <p>Idealized, the tip vortex is a line carried downstream by the flow, with only a bubble or two caught around it. The two views show the same moment: in 3D the bubbles loop as they are carried along, and seen along the vortex axis, moving with the core, their paths circle it. Fitting a vortex model to these trajectories gives the core position, core radius r<sub>c</sub> and circulation Γ, and how they change as the vortex breaks down.</p></div>
+          <canvas class="tall-sm" data-step="vortex" aria-label="Animated schematic: a 3D view of a vortex line advected downstream with two bubbles looping around it, side by side with the synced view along the vortex axis"></canvas>
         </div>
       </div>
       <p class="pipeline-note">Schematic with synthetic particles around an idealized tip vortex, not measured data. Processing uses OpenLPT.</p>

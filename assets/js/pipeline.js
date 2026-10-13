@@ -1,6 +1,7 @@
 // Schematic of the LPT processing chain: camera images -> triangulation -> tracks -> vortex.
 // Synthetic flow: an idealized tip-vortex line (along y) shed by an upstream rotor is advected
-// downstream at U; bubbles near it orbit the core (Lamb-Oseen swirl) while being carried along.
+// downstream at U; bubbles near it orbit the core (Lamb-Oseen swirl) while being carried along,
+// and every bubble also wanders incoherently with the atmospheric turbulence.
 (() => {
   const root = document.getElementById("pipeline");
   if (!root) return;
@@ -29,14 +30,23 @@
     const dx = (rand() - 0.5) * L, dz = (rand() - 0.5) * 5.6;
     if (Math.hypot(dx, dz) > 3) parts.push({ near: false, dx, dz, y: -2.8 + 5.6 * rand() });
   }
+  // atmospheric turbulence: each bubble gets its own smooth random wander (a few modes with
+  // random frequencies and phases), so it is correlated along a track but not between bubbles
+  for (const p of parts) {
+    p.turb = Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => ({
+      a: (p.near ? 0.1 : 0.22) * (0.4 + rand()), f: 0.12 + 0.5 * rand(), ph: rand() * 2 * Math.PI,
+    })));
+  }
+  const wander = (p, t) => p.turb.map(axis => axis.reduce((s, m) => s + m.a * Math.sin(2 * Math.PI * m.f * t + m.ph), 0));
   const coreX = t => XMIN + ((U * t) % L + L) % L;
   function pos(p, t) {
+    const [ex, ey, ez] = wander(p, t);
     if (p.near) {
       const th = p.th0 + omega(p.r) * t;
-      return { x: coreX(t) + p.r * Math.cos(th), y: p.y, z: p.r * Math.sin(th), wraps: Math.floor(U * t / L) };
+      return { x: coreX(t) + p.r * Math.cos(th) + ex, y: p.y + ey, z: p.r * Math.sin(th) + ez, wraps: Math.floor(U * t / L) };
     }
     const x = XMIN + U * t + p.dx, wraps = Math.floor((x - XMIN) / L);
-    return { x: x - wraps * L, y: p.y, z: p.dz, wraps };
+    return { x: x - wraps * L + ex, y: p.y + ey, z: p.dz + ez, wraps };
   }
   const P3 = p => [p.x, p.y, p.z];
 
@@ -229,60 +239,64 @@
       label(ctx, "Tip vortex", vx.x + 8, vx.y + 4, C.core);
     },
 
-    // 04 idealized vortex line advected downstream, then the view along its axis
+    // 04 the same instant in two views: 3D (lab frame) and along the vortex axis (moving with the core)
     vortex(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       const CYC = 14, tc = ((t % CYC) + CYC) % CYC;
-      // 0-4.5 s 3D view, 4.5-6.5 s swing round, 6.5-12 s along the axis, 12-14 s swing back
-      const b = tc < 4.5 ? 0 : tc < 6.5 ? smooth((tc - 4.5) / 2) : tc < 12 ? 1 : smooth(1 - (tc - 12) / 2);
-      const UV = 7 / CYC, xv = -3.5 + UV * tc;                      // vortex crosses the volume once per cycle
+      const UV = 7 / CYC, xv = -3.5 + UV * tc;                 // vortex crosses the volume once per cycle
       const fade = Math.min(1, tc / 0.6, (CYC - tc) / 0.6);
-      const az = lerp(-Math.PI / 2 + 0.75, -Math.PI / 2, b), el = lerp(0.42, 0, b), D = lerp(11, 5.8, b);
-      const k = 1.9, view = orbit(az, el, D, [lerp(0, xv, b), 0, 0]);
-      const bubbles = [{ r: 0.95, th0: 0.4, y: -0.7 }, { r: 1.6, th0: 2.6, y: 0.9 }];
-      const at = (p, s) => {               // position at time s; trail drawn in the core's frame as b -> 1
+      const stacked = w < 560;
+      const A = stacked ? { x: 0, y: 0, w, h: h / 2 } : { x: 0, y: 0, w: w / 2, h };
+      const B = stacked ? { x: 0, y: h / 2, w, h: h / 2 } : { x: w / 2, y: 0, w: w / 2, h };
+      const bubbles = [
+        { r: 0.95, th0: 0.4, y: -0.7, col: C.brass, dot: C.brass },
+        { r: 1.6, th0: 2.6, y: 0.9, col: "rgba(242,240,234,.75)", dot: C.bubble },
+      ];
+      const at = (p, s, frame) => {   // frame 0: lab, 1: moving with the core
         const th = p.th0 + omega(p.r) * s * 0.55, x = -3.5 + UV * s;
-        return [x - b * (x - xv) + p.r * Math.cos(th), p.y, p.r * Math.sin(th)];
+        return [x - frame * (x - xv) + p.r * Math.cos(th), p.y, p.r * Math.sin(th)];
       };
-      ctx.globalAlpha = fade * (1 - b); drawBox(ctx, view, w, h, k); ctx.globalAlpha = fade;
-      // vortex line: a glowing tube in 3D, a point when seen end-on
-      ctx.strokeStyle = "rgba(196,84,74,.18)"; ctx.lineWidth = 12; ctx.lineCap = "round";
-      seg(ctx, view, [xv, -3, 0], [xv, 3, 0], w, h, k);
-      ctx.strokeStyle = C.core; ctx.lineWidth = 3;
-      seg(ctx, view, [xv, -3, 0], [xv, 3, 0], w, h, k); ctx.lineCap = "butt";
-      for (const p of bubbles) {
-        ctx.strokeStyle = C.brass; ctx.lineWidth = 1.6; ctx.beginPath();
-        const s0 = Math.max(0, tc - 6);
-        for (let s = s0, i = 0; s <= tc; s += 0.03, i++) {
-          const q = scr(view, at(p, s), w, h, k);
-          i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
-        }
-        ctx.stroke();
-        const q = scr(view, at(p, tc), w, h, k);
-        dotAt(ctx, q.x, q.y, 4, C.bubble);
-      }
-      // end-on annotations
-      if (b > 0.02) {
-        ctx.globalAlpha = fade * b;
-        const c = scr(view, [xv, 0, 0], w, h, k);
-        ctx.strokeStyle = C.brass; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
-        for (let i = 0; i <= 64; i++) {
-          const a = 2 * Math.PI * i / 64, q = scr(view, [xv + RC * Math.cos(a), 0, RC * Math.sin(a)], w, h, k);
-          i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
-        }
-        ctx.stroke(); ctx.setLineDash([]);
-        const e = scr(view, [xv + RC * 0.75, 0, -RC * 0.75], w, h, k);
-        sym(ctx, "r", "c", e.x + 6, e.y + 14, C.brass);
-        label(ctx, "Core", c.x + 12, c.y - 10, C.core);
-        label(ctx, "View along vortex axis", 14, 22, C.text);
+      const panel = (vp, view, frame, k) => {
+        ctx.save(); ctx.translate(vp.x, vp.y); ctx.beginPath(); ctx.rect(0, 0, vp.w, vp.h); ctx.clip();
         ctx.globalAlpha = fade;
-      }
-      if (b < 0.98) {
-        ctx.globalAlpha = fade * (1 - b);
-        label(ctx, "Idealized vortex line, advected downstream", 14, 22, C.text);
-        label(ctx, "Flow →", w - 14, h - 14, C.dim, "right");
-      }
-      ctx.globalAlpha = 1;
+        if (!frame) drawBox(ctx, view, vp.w, vp.h, k);
+        ctx.strokeStyle = "rgba(196,84,74,.18)"; ctx.lineWidth = 12; ctx.lineCap = "round";
+        seg(ctx, view, [xv, -3, 0], [xv, 3, 0], vp.w, vp.h, k);
+        ctx.strokeStyle = C.core; ctx.lineWidth = 3;
+        seg(ctx, view, [xv, -3, 0], [xv, 3, 0], vp.w, vp.h, k); ctx.lineCap = "butt";
+        for (const p of bubbles) {
+          ctx.strokeStyle = p.col; ctx.lineWidth = 1.6; ctx.beginPath();
+          for (let s = Math.max(0, tc - 6), i = 0; s <= tc; s += 0.03, i++) {
+            const q = scr(view, at(p, s, frame), vp.w, vp.h, k);
+            i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
+          }
+          ctx.stroke();
+          const q = scr(view, at(p, tc, frame), vp.w, vp.h, k);
+          dotAt(ctx, q.x, q.y, 4, p.dot);
+        }
+        if (frame) {
+          const c = scr(view, [xv, 0, 0], vp.w, vp.h, k);
+          ctx.strokeStyle = C.brassDim; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.beginPath();
+          for (let i = 0; i <= 64; i++) {
+            const a = 2 * Math.PI * i / 64, q = scr(view, [xv + RC * Math.cos(a), 0, RC * Math.sin(a)], vp.w, vp.h, k);
+            i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
+          }
+          ctx.stroke(); ctx.setLineDash([]);
+          const e = scr(view, [xv + RC * 0.75, 0, -RC * 0.75], vp.w, vp.h, k);
+          sym(ctx, "r", "c", e.x + 6, e.y + 14, C.brass);
+          label(ctx, "Core", c.x + 12, c.y - 10, C.core);
+        }
+        ctx.globalAlpha = 1;
+        label(ctx, frame ? "Along the vortex axis" : "3D view", 14, 22, C.text);
+        if (!frame) label(ctx, "Flow →", vp.w - 14, vp.h - 14, C.dim, "right");
+        else label(ctx, "Moving with the core", vp.w - 14, vp.h - 14, C.dim, "right");
+        ctx.restore();
+      };
+      panel(A, orbit(-Math.PI / 2 + 0.75, 0.42, stacked ? 11.5 : 9, [0, 0, 0]), 0, 1.9);
+      panel(B, orbit(-Math.PI / 2, 0, 5.6, [xv, 0, 0]), 1, 1.9);
+      ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath();
+      stacked ? (ctx.moveTo(14, h / 2), ctx.lineTo(w - 14, h / 2)) : (ctx.moveTo(w / 2, 14), ctx.lineTo(w / 2, h - 14));
+      ctx.stroke();
     },
   };
 
@@ -291,7 +305,7 @@
   const canvases = [...root.querySelectorAll("canvas[data-step]")].map(cv => ({ cv, ctx: setup(cv), fn: steps[cv.dataset.step] }));
   const draw = (item, t) => item.fn(item.ctx, item.cv._w, item.cv._h, t);
   if (reduce) {
-    const still = () => canvases.forEach(c => draw(c, c.cv.dataset.step === "vortex" ? 9 : 5));
+    const still = () => canvases.forEach(c => draw(c, c.cv.dataset.step === "vortex" ? 7 : 5));
     still(); window.addEventListener("resize", still);
     return;
   }
