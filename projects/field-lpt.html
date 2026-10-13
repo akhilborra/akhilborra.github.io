@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=7">
+  <link rel="stylesheet" href="../assets/css/style.css?v=8">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=5"></script>
-  <script defer src="../assets/js/pipeline.js?v=10"></script>
+  <script defer src="../assets/js/pipeline.js?v=11"></script>
 </head>
 <body>
   <header class="topbar">
@@ -52,11 +52,16 @@
       <div class="wrap">
         <article class="prose">
 
+      <h2>Idea</h2>
+      <p>Tip vortices set both how much power the outer blade produces and how the wake develops downstream. Their behaviour depends on the atmosphere the turbine sits in: its turbulence intensity, shear and length scales. Wind tunnels cannot reproduce the Reynolds numbers and large-scale features of atmospheric turbulence, so most tip vortex studies use laminar or unrealistic turbulent inflow. Commercial field instruments like anemometers and LiDAR lack either the spatial coverage or the temporal resolution to resolve vortex dynamics. Tracking particles directly in the wake of a full-scale turbine fills that gap.</p>
 
-      <h2>Why field measurements</h2>
-      <p>Wind tunnels cannot reproduce the Reynolds numbers and large-scale features of atmospheric turbulence, so most tip vortex studies use laminar or unrealistic turbulent inflow. Commercial field instruments like anemometers and LiDAR lack either the spatial coverage or the temporal resolution to resolve vortex dynamics. Tracking particles in the field fills that gap.</p>
-      <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake." loading="lazy"><figcaption>The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake.</figcaption></figure>
-      <h2>Explore the setup</h2>
+      <h2>Experimental design</h2>
+      <p>The setup has three parts: seeding, illumination and imaging.</p>
+      <ul>
+        <li><strong>Seeding.</strong> Helium-filled soap bubbles (HFSB) from a custom bubble generator, which I designed and built to be lifted to hub height by a DJI Matrice 350 drone upstream of the rotor.</li>
+        <li><strong>Illumination.</strong> Sunlight during the day, or a 10 kW xenon arc lamp and an LED panel at night. Each bubble shows up as bright glare points that the cameras can track.</li>
+        <li><strong>Imaging.</strong> Four synchronized Phantom VEO4K-990 cameras at 900 Hz. Their shared field of view, about 8 × 10 × 6 m, sits 15 m above the ground in the near wake.</li>
+      </ul>
       <figure class="viewer">
         <model-viewer id="lpt-model" data-ground="none" src="../assets/models/lpt-setup.glb?v=4" autoplay alt="3D model of the field particle-tracking setup at the wind turbine" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="0m 14m 2m" camera-orbit="-50deg 78deg 48m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
           <div class="viewer-hint" slot="poster">Loading 3D model…</div>
@@ -65,18 +70,12 @@
         <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. Bubbles follow trajectories from a particle simulation of the setup, released by the drone-lifted generator upstream. The rotor turns, and the tip-vortex helix turns with it, carrying the vortex downstream. The red volume is where all four cameras overlap. An LED panel on the ground lights the volume from below. Bubbles (real ones are about 2.5 cm) and the drone are drawn larger than life so they're visible.</figcaption>
       </figure>
 
-      <h2>The system</h2>
-      <ul>
-        <li><strong>Seeding.</strong> Helium-filled soap bubbles (HFSB) from a custom bubble generator, which I designed and built to be lifted to hub height by a DJI Matrice 350 drone.</li>
-        <li><strong>Illumination.</strong> Sunlight during the day, or a 10 kW xenon arc lamp at night. Each bubble shows up as bright glare points that the cameras can track.</li>
-        <li><strong>Imaging.</strong> Four synchronized Phantom VEO4K-990 cameras whose shared field of view sits 15 m above the ground in the near wake.</li>
-        <li><strong>Processing.</strong> 3D trajectories reconstructed with the open-source OpenLPT framework to characterize tip vortex dynamics and breakdown.</li>
-      </ul>
-      <div class="fig-grid"><figure class="fig"><img src="../assets/img/lpt-render.jpg" alt="Schematic of the measurement volume, cameras, LEDs and bubble generator relative to the rotor." loading="lazy"><figcaption>Schematic of the measurement volume, cameras, LEDs and bubble generator relative to the rotor.</figcaption></figure><figure class="fig"><img src="../assets/img/lpt-night.jpg" alt="Night operation: the xenon lamp lights up bubbles drifting through the measurement volume." loading="lazy"><figcaption>Night operation: the xenon lamp lights up bubbles drifting through the measurement volume.</figcaption></figure></div>
       <h2>Campaign</h2>
-      <p>I led the field campaign at the OST turbine, from test planning through on-site execution, and the February 2026 data are now being processed into 3D Lagrangian tracks. The work was presented at the <em>Recent Advances in Turbulent Wind Farm Dynamics</em> colloquium in London (2026).</p>
-      <figure class="fig"><img src="../assets/img/lpt-frame.jpg" alt="A frame from the high-speed recordings with the turbine and illuminated tracer bubbles." loading="lazy"><figcaption>A frame from the high-speed recordings with the turbine and illuminated tracer bubbles.</figcaption></figure>
-      <h2>From images to vortices</h2>
+      <p>I led the field campaigns at the OST Aventa 6.5 kW turbine in Winterthur, Switzerland, from test planning through on-site execution: an initial test campaign in October 2025, followed by the main campaign in 2026. The setup runs by day with sunlight and by night with the xenon lamp. The work was presented at the <em>Recent Advances in Turbulent Wind Farm Dynamics</em> colloquium in London (2026).</p>
+      <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake." loading="lazy"><figcaption>The field setup in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras and a xenon arc lamp view the near wake.</figcaption></figure>
+      <div class="fig-grid"><figure class="fig"><img src="../assets/img/lpt-night.jpg" alt="Night operation: the xenon lamp lights up bubbles drifting through the measurement volume." loading="lazy"><figcaption>Night operation: the xenon lamp lights up bubbles drifting through the measurement volume.</figcaption></figure><figure class="fig"><img src="../assets/img/lpt-frame.jpg" alt="A frame from the high-speed recordings with the turbine and illuminated tracer bubbles." loading="lazy"><figcaption>A frame from the high-speed recordings with the turbine and illuminated tracer bubbles.</figcaption></figure></div>
+
+      <h2>Processing</h2>
       <p>Each recording is millions of bright dots. Turning them into vortex measurements takes four steps.</p>
       <div class="pipeline" id="pipeline">
         <div class="step reveal">
@@ -101,10 +100,12 @@
         </div>
       </div>
       <p class="pipeline-note">Schematic with synthetic particles around an idealized tip vortex, not measured data. Processing uses OpenLPT.</p>
+
+      <h2>Results</h2>
+      <p>The 2026 recordings are being processed into 3D Lagrangian tracks with OpenLPT. The next step is to extract the tip vortex from the trajectories and follow its core position, size and strength through breakdown under real atmospheric inflow. Results will be added here as they come in.</p>
       <div class="callout"><p>In collaboration with Mano Grunwald and Claudia Brunner (MPI-DS).</p></div>
 
-    
-        </article>
+    </article>
       </div>
     </section>
 

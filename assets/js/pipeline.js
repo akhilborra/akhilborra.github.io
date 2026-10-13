@@ -316,7 +316,7 @@
   canvases.forEach(c => { io.observe(c.cv); draw(c, 0); });
   const t0 = performance.now();
   (function loop(now) {
-    const t = (now - t0) / 1000;
+    const t = Math.max(0, (now - t0) / 1000);
     live.forEach(c => draw(c, t));
     requestAnimationFrame(loop);
   })(t0);

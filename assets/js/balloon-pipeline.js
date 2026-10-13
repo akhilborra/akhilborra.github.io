@@ -163,5 +163,5 @@
   const io = new IntersectionObserver(es => es.forEach(e => { const it = items.find(i => i.cv === e.target); e.isIntersecting ? live.add(it) : live.delete(it); }));
   items.forEach(it => { io.observe(it.cv); draw(it, 0); });
   const t0 = performance.now();
-  (function loop(now) { const t = (now - t0) / 1000; clock = t; live.forEach(it => draw(it, t)); requestAnimationFrame(loop); })(t0);
+  (function loop(now) { const t = Math.max(0, (now - t0) / 1000); clock = t; live.forEach(it => draw(it, t)); requestAnimationFrame(loop); })(t0);
 })();
