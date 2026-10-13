@@ -7,6 +7,8 @@ paths.json  bubble trajectories from: Blender -b scene.blend --python tools/bake
 
 Animation (one loop = one particle lifetime, 187 frames at 24 fps):
   * rotor spins clockwise seen from upstream, REVS whole turns per loop
+  * translucent LED light cone rises from the ground panel through the measurement volume
+  * drone and met mast materials brightened so they read on a dark background
   * tip-vortex helix rotates with the rotor; for a helix, rotating about its axis is
     the same as convecting downstream (measured handedness: dAngle/dx < 0 in glTF frame)
   * drone propellers spin
@@ -16,7 +18,7 @@ Animation (one loop = one particle lifetime, 187 frames at 24 fps):
 import json, math, struct, sys
 
 static, paths_file, out = sys.argv[1:4]
-REVS = 5             # rotor revolutions per loop
+REVS = 3             # rotor revolutions per loop (3 per 7.8 s loop = ~23 rpm)
 PROP_REVS = 20       # drone propeller revolutions per loop
 KEY_STEP = 2         # bubble keyframe spacing (frames)
 R_BUBBLE = 0.12      # drawn radius (m); real bubbles are ~2.5 cm
@@ -141,6 +143,64 @@ for bi, b in enumerate(data["bubbles"]):
     channels.append({"sampler": len(samplers) - 1, "target": {"node": len(nodes) - 1, "path": "translation"}})
 nodes.append(group)
 roots.append(len(nodes) - 1)
+
+# ---------- light cone from the LED panel into the measurement volume ----------
+# LED panel: 4x4 tiles centred at (-6, -6) m on the ground; measurement volume ~8-24 m up.
+def cone(bottom, r0, top, r1, a0, a1, seg=48, rings=6):
+    P, C, I = [], [], []
+    for j in range(rings + 1):
+        f = j / rings
+        c = [bottom[k] + (top[k] - bottom[k]) * f for k in range(3)]
+        r = r0 + (r1 - r0) * f
+        a = a0 + (a1 - a0) * f ** 0.8
+        for i in range(seg):
+            th = 2 * math.pi * i / seg
+            P.append(to_gl([c[0] + r * math.cos(th), c[1] + r * math.sin(th), c[2]]))
+            C.append([1.0, 0.96, 0.86, a])
+    for j in range(rings):
+        for i in range(seg):
+            a, b = j * seg + i, j * seg + (i + 1) % seg
+            I += [a, b, a + seg, b, b + seg, a + seg]
+    return P, C, I
+
+gl.setdefault("extensionsUsed", [])
+if "KHR_materials_unlit" not in gl["extensionsUsed"]:
+    gl["extensionsUsed"].append("KHR_materials_unlit")
+gl["materials"].append({"name": "LEDBeam", "alphaMode": "BLEND", "doubleSided": True,
+                        "pbrMetallicRoughness": {"baseColorFactor": [1, 1, 1, 1], "metallicFactor": 0, "roughnessFactor": 1},
+                        "extensions": {"KHR_materials_unlit": {}}})
+cp, cc, ci = cone([-6, -6, 0.25], 2.4, [-4.5, -6, 25.0], 8.5, 0.30, 0.0)
+gl["meshes"].append({"name": "LEDBeam", "primitives": [{
+    "attributes": {"POSITION": accessor(cp, "VEC3", minmax=True, target=34962),
+                   "COLOR_0": accessor(cc, "VEC4", target=34962)},
+    "indices": accessor(ci, "SCALAR", comp=5123, target=34963),
+    "material": len(gl["materials"]) - 1}]})
+nodes.append({"name": "LEDBeam", "mesh": len(gl["meshes"]) - 1})
+roots.append(len(nodes) - 1)
+
+# ---------- brighten parts that disappear on a dark background ----------
+LIGHTEN = {
+    "body-drone-1": ([0.88, 0.89, 0.88, 1], [0.45, 0.45, 0.45]),   # drone body + tether
+    "body-1": ([0.70, 0.71, 0.70, 1], [0.12, 0.12, 0.12]),
+    "Material.006": ([0.86, 0.86, 0.84, 1], [0.30, 0.30, 0.29]),   # met mast pole + guy wires
+    "USA3D_Steel": ([0.86, 0.86, 0.86, 1], [0.22, 0.22, 0.22]),    # sonic anemometer
+    "USA3D_Transducer": ([0.75, 0.75, 0.75, 1], [0.15, 0.15, 0.15]),
+    "Material.004": ([1.0, 0.97, 0.88, 1], [1.0, 0.96, 0.85]),     # LED tiles glow
+}
+for m in gl["materials"]:
+    if m.get("name") in LIGHTEN:
+        base, emis = LIGHTEN[m["name"]]
+        pbr = m.setdefault("pbrMetallicRoughness", {})
+        pbr.pop("baseColorTexture", None)
+        pbr["baseColorFactor"] = base
+        pbr["metallicFactor"] = 0.1
+        pbr["roughnessFactor"] = 0.6
+        m["emissiveFactor"] = emis
+        m.pop("emissiveTexture", None)
+
+# Drone is ~0.7 m across in a 75 m scene; draw it 2.5x larger so it reads from orbit distance
+drone = nodes[by_name["Cylinder.002"]]
+drone["scale"] = [v * 2.5 for v in drone.get("scale", [1, 1, 1])]
 
 # ---------- rotor, helix, propellers ----------
 rotation_track(rotor, [1, 0, 0], REVS, 12, -1, T)
