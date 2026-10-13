@@ -64,7 +64,7 @@
         <div class="bx-stage">
           <model-viewer data-tracks="../assets/data/balloon-tracks.json?v=1" src="../assets/models/balloon-real.glb?v=1" alt="3D terrain model of the WINSENT test site with wind turbines and the recorded balloon tracks"
             camera-controls autoplay touch-action="pan-y" interaction-prompt="none" tone-mapping="neutral" exposure="1.05" shadow-intensity="0"
-            camera-target="12500m 900m -600m" camera-orbit="-14deg 63deg 25000m" field-of-view="32deg"
+            camera-target="14000m 4200m -900m" camera-orbit="-10deg 64deg 38000m" field-of-view="30deg"
             min-camera-orbit="auto 5deg 1500m" max-camera-orbit="auto 86deg 70000m">
             <div class="viewer-hint" slot="poster">Loading terrain and tracks…</div>
           </model-viewer>
@@ -81,8 +81,8 @@
           <div class="bx-time"><span>T + 0:00</span><small>1 s = 1 min of flight</small></div>
         </div>
         <div class="bx-panels">
-          <div class="bx-panel"><div class="label"><span>Map · top view</span><span>Turbines ·</span></div><canvas data-view="map" aria-label="Map of balloon tracks and turbines"></canvas></div>
-          <div class="bx-panel"><div class="label"><span>Side view · altitude</span><span>Terrain under the tracks</span></div><canvas data-view="profile" aria-label="Balloon altitude against distance east"></canvas></div>
+          <div class="bx-panel"><div class="label"><span>Map · top view</span><span>· Turbines</span></div><canvas data-view="map" aria-label="Map of balloon tracks and turbines"></canvas></div>
+          <div class="bx-panel"><div class="label"><span>Side view</span><span>Altitude over terrain</span></div><canvas data-view="profile" aria-label="Balloon altitude against distance east"></canvas></div>
         </div>
         <table class="bx-table">
           <thead><tr><th>Sonde</th><th>Height above ground</th><th>From release</th><th class="opt">Temp.</th><th class="opt">Humidity</th><th class="opt">Pressure</th></tr></thead>

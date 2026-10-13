@@ -59,5 +59,5 @@
 .bp-n { font: 800 3.4rem/0.9 var(--display); font-stretch: 72%; color: var(--brass); }
 .bp-step h3 { font: 800 1.6rem/1 var(--display); font-stretch: 72%; text-transform: uppercase; margin: 10px 0 10px; color: var(--ink); }
 .bp-step p { margin: 0; font-size: .96rem; }
-.bp-step canvas { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #111413; }
+.bp-step canvas { display: block; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; border-radius: 10px; background: #111413; }
 .bp-note { font-size: .84rem; color: var(--ink-3); }

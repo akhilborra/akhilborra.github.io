@@ -16,7 +16,7 @@
   function setup(cv) {
     const ctx = cv.getContext("2d");
     const fit = () => { const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); cv._w = cv.clientWidth; cv._h = cv.clientHeight; };
-    fit(); new ResizeObserver(fit).observe(cv); return ctx;
+    fit(); new ResizeObserver(() => { fit(); cv._redraw && cv._redraw(); }).observe(cv); return ctx;
   }
   function backdrop(ctx, w, h, gy) {
     const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, C.sky0); g.addColorStop(1, C.sky1);
@@ -64,8 +64,8 @@
         balloon(ctx, bx, by, cols[k]); balloon(ctx, dx, dy + 40, cols[(k + 1) % 3]);
       }
       ctx.strokeStyle = C.brass; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
-      ctx.beginPath(); ctx.moveTo(dx - 34, dy + 40); ctx.lineTo(dx - 34, gy); ctx.stroke(); ctx.setLineDash([]);
-      label(ctx, "Release height", dx - 40, (dy + 40 + gy) / 2, C.brass, "right");
+      ctx.beginPath(); ctx.moveTo(dx + 26, dy + 40); ctx.lineTo(dx + 26, gy); ctx.stroke(); ctx.setLineDash([]);
+      label(ctx, "Release height", dx + 32, (dy + 40 + gy) / 2 + 4, C.brass);
       label(ctx, "Wind →", 14, 22, C.dim);
     },
 
@@ -107,7 +107,7 @@
       ctx.fillStyle = "#d9d8d2"; ctx.fillRect(rx + 16, ry - 10, 22, 12); ctx.fillRect(rx + 12, ry + 2, 30, 2);
       label(ctx, "Ground receiver", rx, ry + 18, C.text, "center");
       // scrolling log
-      const lx = 14, ly = h * 0.5, lines = 5;
+      const lx = 14, ly = h * 0.30, lines = 5;
       label(ctx, "Telemetry log", lx, ly - 10, C.dim);
       for (let i = 0; i < lines; i++) {
         const n = Math.floor(t * 1.2) - i, a = 1 - i / lines;
@@ -121,14 +121,14 @@
       ctx.fillStyle = C.sky1; ctx.fillRect(0, 0, w, h);
       const narrow = w < 480;
       // left: track in x-z with velocity arrows from GPS differencing
-      const L = { x: 14, y: 30, w: narrow ? w - 28 : w * 0.5, h: narrow ? h * 0.42 : h - 60 };
+      const L = { x: 14, y: 30, w: narrow ? w - 28 : w * 0.5, h: narrow ? h * 0.36 : h - 60 };
       ctx.strokeStyle = C.grid; ctx.strokeRect(L.x, L.y, L.w, L.h);
       const tr = []; for (let i = 0; i <= 80; i++) { const f = i / 80; tr.push([L.x + 8 + f * (L.w - 16), L.y + L.h * (0.75 - 0.5 * f) + 8 * Math.sin(f * 12)]); }
       ctx.strokeStyle = C.Cc; ctx.lineWidth = 1.8; ctx.beginPath(); tr.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
       const k = Math.floor(((t * 0.25) % 1) * 70) + 2;
       for (let i = 4; i < 78; i += 10) {
         const [x0, y0] = tr[i], [x1, y1] = tr[i + 2], dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy), s = 16 / l;
-        const on = Math.abs(i - k) < 6; ctx.strokeStyle = on ? C.brass : "rgba(201,168,107,.45)"; ctx.lineWidth = on ? 1.8 : 1.1;
+        const on = Math.abs(i - k) < 6; ctx.strokeStyle = on ? C.brass : "rgba(201,168,107,.7)"; ctx.lineWidth = on ? 2 : 1.3;
         ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + dx * s, y0 + dy * s); ctx.stroke();
         const ax = x0 + dx * s, ay = y0 + dy * s, an = Math.atan2(dy, dx);
         ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax - 5 * Math.cos(an - .5), ay - 5 * Math.sin(an - .5)); ctx.lineTo(ax - 5 * Math.cos(an + .5), ay - 5 * Math.sin(an + .5)); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
@@ -136,7 +136,7 @@
       dot(ctx, tr[k][0], tr[k][1], 4, C.Cc);
       label(ctx, "Track → velocity (Δx / Δt)", L.x, 20, C.brass);
       // right: profiles of wind speed and potential temperature, stability from dθ/dz
-      const R = narrow ? { x: 40, y: L.y + L.h + 34, w: w - 60, h: h - L.h - 80 } : { x: w * 0.5 + 54, y: 30, w: w * 0.5 - 70, h: h - 60 };
+      const R = narrow ? { x: 52, y: L.y + L.h + 26, w: w - 66, h: h - (L.y + L.h + 26) - 12 } : { x: w * 0.5 + 54, y: 30, w: w * 0.5 - 70, h: h - 60 };
       ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(R.x, R.y); ctx.lineTo(R.x, R.y + R.h); ctx.lineTo(R.x + R.w, R.y + R.h); ctx.stroke();
       const prog = reduce ? 1 : Math.min(1, ((t * 0.25) % 1) * 1.3);
       const n = Math.floor(prog * 40);
@@ -155,11 +155,13 @@
   };
 
   const items = [...root.querySelectorAll("canvas[data-step]")].map(cv => ({ cv, ctx: setup(cv), fn: steps[cv.dataset.step] }));
+  let clock = reduce ? 4.2 : 0;
   const draw = (it, t) => it.fn(it.ctx, it.cv._w, it.cv._h, t);
+  items.forEach(it => { it.cv._redraw = () => draw(it, clock); });
   if (reduce) { const still = () => items.forEach(it => draw(it, 4.2)); still(); addEventListener("resize", still); return; }
   const live = new Set();
   const io = new IntersectionObserver(es => es.forEach(e => { const it = items.find(i => i.cv === e.target); e.isIntersecting ? live.add(it) : live.delete(it); }));
   items.forEach(it => { io.observe(it.cv); draw(it, 0); });
   const t0 = performance.now();
-  (function loop(now) { const t = (now - t0) / 1000; live.forEach(it => draw(it, t)); requestAnimationFrame(loop); })(t0);
+  (function loop(now) { const t = (now - t0) / 1000; clock = t; live.forEach(it => draw(it, t)); requestAnimationFrame(loop); })(t0);
 })();

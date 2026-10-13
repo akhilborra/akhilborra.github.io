@@ -58,3 +58,16 @@ $B -b "path/to/wind_farm.blend" --python tools/export_farm.py -- assets/models/b
 The bake steps through the simulation and takes about 5 minutes. The scripts only modify the scene in
 memory; the .blend files are not saved. After changing `style.css`, bump the `?v=` number on the
 stylesheet links so browsers fetch the new version.
+
+### Balloon project (real data)
+
+`assets/models/balloon-real.glb` and `assets/data/balloon-tracks.json` are built from the October 2025
+WINSENT campaign data (cleaned radiosonde tracks, cached turbine list) plus SRTM-based elevation tiles
+(AWS Open Data "Terrain Tiles", Terrarium format, zoom 12):
+
+```bash
+python3 tools/build_balloon_scene.py "path/to/SMARTIES/Field Campaigns/Winsent_October_25" path/to/terrarium_tiles
+```
+
+It needs numpy, pandas and pillow. The balloon page's explorer (`assets/js/balloon-explorer.js`) and
+schematic (`assets/js/balloon-pipeline.js`) use their own stylesheet, `assets/css/balloon.css`.
