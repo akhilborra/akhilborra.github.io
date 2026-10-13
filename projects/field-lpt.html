@@ -8,9 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=5">
+  <link rel="stylesheet" href="../assets/css/style.css?v=6">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=5"></script>
+  <script defer src="../assets/js/pipeline.js?v=4"></script>
 </head>
 <body>
   <header class="topbar">
@@ -75,6 +76,31 @@
       <h2>Campaign</h2>
       <p>I led the field campaign at the OST turbine, from test planning through on-site execution, and the February 2026 data are now being processed into 3D Lagrangian tracks. The work was presented at the <em>Recent Advances in Turbulent Wind Farm Dynamics</em> colloquium in London (2026).</p>
       <figure class="fig"><img src="../assets/img/lpt-frame.jpg" alt="A frame from the high-speed recordings with the turbine and illuminated tracer bubbles." loading="lazy"><figcaption>A frame from the high-speed recordings with the turbine and illuminated tracer bubbles.</figcaption></figure>
+      <h2>From images to vortices</h2>
+      <p>Each recording is millions of bright dots. Turning them into vortex measurements takes four steps.</p>
+      <div class="pipeline" id="pipeline">
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">01</span><h3>Four views</h3>
+            <p>Four synchronized high-speed cameras film the measurement volume from different angles at 900 frames per second. Each soap bubble shows up as a pair of bright glare points.</p></div>
+          <canvas data-step="cams" aria-label="Animated schematic of four camera views showing moving glare points"></canvas>
+        </div>
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">02</span><h3>Match &amp; triangulate</h3>
+            <p>Using the camera calibration, the same bubble is matched across all four images. Its four lines of sight cross at a single point, which gives its position in 3D.</p></div>
+          <canvas data-step="match" aria-label="Animated schematic of four lines of sight converging on one bubble"></canvas>
+        </div>
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">03</span><h3>Track &amp; stitch</h3>
+            <p>Positions are linked from frame to frame into tracks. When a bubble is hidden or lost for a few frames, the short tracks on either side are stitched into one long Lagrangian trajectory.</p></div>
+          <canvas data-step="track" aria-label="Animated schematic of particle tracks with stitched gaps"></canvas>
+        </div>
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">04</span><h3>Vortex</h3>
+            <p>Looking down the vortex axis, the trajectories wrap around the tip vortex. Fitting a vortex model to their swirl velocity gives the core position, core radius r<sub>c</sub> and circulation Γ, frame by frame, as the vortex breaks down.</p></div>
+          <canvas data-step="vortex" aria-label="Animated schematic of tracks circling a vortex core and a fitted swirl velocity profile"></canvas>
+        </div>
+      </div>
+      <p class="pipeline-note">Schematic with synthetic particles around an idealized vortex. Processing uses OpenLPT.</p>
       <div class="callout"><p>In collaboration with Mano Grunwald and Claudia Brunner (MPI-DS).</p></div>
 
     
