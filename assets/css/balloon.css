@@ -1,0 +1,63 @@
+/* Balloon project page: real-data explorer and data-flow schematic.
+   Uses the design tokens from style.css; everything is namespaced bx- / bp-. */
+
+/* ---------- Explorer ---------- */
+.bx { margin: 40px 0; }
+@media (min-width: 1100px) { .prose > .bx, .prose > .bp { margin-left: -160px; margin-right: -160px; } }
+.bx-stage { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); background: radial-gradient(120% 90% at 50% 0%, #1d2320 0%, #121513 70%); }
+.bx-stage model-viewer { width: 100%; height: min(70vh, 620px); background: transparent; --poster-color: transparent; }
+@media (max-width: 600px) { .bx-stage model-viewer { height: 440px; } }
+.bx-legend { position: absolute; left: 14px; top: 14px; display: flex; gap: 6px; flex-wrap: wrap; }
+.bx-chip {
+  display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 10px; border-radius: 999px; cursor: pointer;
+  background: rgba(15, 18, 17, .78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--rule); color: var(--ink);
+  font: 600 .7rem var(--sans); letter-spacing: .1em; text-transform: uppercase;
+}
+.bx-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+.bx-chip small { font-weight: 500; color: var(--ink-3); letter-spacing: .04em; text-transform: none; }
+.bx-chip[aria-pressed="false"] { opacity: .45; }
+.bx-chip[aria-pressed="false"] i { box-shadow: none; }
+.bx-note { position: absolute; right: 14px; top: 14px; text-align: right; pointer-events: none; }
+
+.bx-controls { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px 4px 6px; }
+.bx-play {
+  width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--on-char); color: var(--char); font-size: 1rem; display: grid; place-items: center;
+}
+.bx-time { font: 800 1.5rem/1 var(--display); font-stretch: 72%; text-transform: uppercase; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bx-time small { display: block; font: 600 .62rem var(--sans); letter-spacing: .12em; color: var(--ink-3); margin-top: 4px; }
+.bx-range { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+.bx-range::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--brass) var(--p, 0%), var(--rule) var(--p, 0%)); }
+.bx-range::-moz-range-track { height: 3px; border-radius: 3px; background: var(--rule); }
+.bx-range::-moz-range-progress { height: 3px; background: var(--brass); }
+.bx-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%; background: var(--brass); border: 3px solid var(--char); box-shadow: 0 0 0 1px var(--brass); }
+.bx-range::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--brass); border: 3px solid var(--char); }
+
+.bx-panels { display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; margin-top: 8px; }
+@media (max-width: 860px) { .bx-panels { grid-template-columns: 1fr; } }
+.bx-panel { background: var(--char); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 10px; }
+.bx-panel .label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.bx-panel canvas { display: block; width: 100%; aspect-ratio: 16 / 8; }
+
+.bx-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.bx-table th { text-align: right; font: 600 .64rem var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+.bx-table th:first-child, .bx-table td:first-child { text-align: left; }
+.bx-table td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--rule); color: var(--ink); }
+.bx-table td.dim { color: var(--ink-3); }
+.bx-table tr.off { display: none; }
+.bx-id { display: inline-flex; align-items: center; gap: 8px; }
+.bx-id i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.bx-id small { color: var(--ink-3); }
+@media (max-width: 600px) { .bx-table .opt { display: none; } }
+.bx-cap { margin-top: 12px; font-size: .86rem; color: var(--ink-3); }
+
+/* ---------- Data-flow schematic ---------- */
+.bp { margin: 40px 0; display: grid; gap: 14px; }
+.bp-step { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 28px; align-items: center; padding: 18px; border: 1px solid var(--rule); border-radius: 14px; background: var(--char); }
+@media (max-width: 860px) { .bp-step { grid-template-columns: 1fr; gap: 14px; } }
+.bp-n { font: 800 3.4rem/0.9 var(--display); font-stretch: 72%; color: var(--brass); }
+.bp-step h3 { font: 800 1.6rem/1 var(--display); font-stretch: 72%; text-transform: uppercase; margin: 10px 0 10px; color: var(--ink); }
+.bp-step p { margin: 0; font-size: .96rem; }
+.bp-step canvas { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #111413; }
+.bp-note { font-size: .84rem; color: var(--ink-3); }

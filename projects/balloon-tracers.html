@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="../assets/css/style.css?v=6">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=5"></script>
+  <link rel="stylesheet" href="../assets/css/balloon.css?v=1">
+  <script defer src="../assets/js/balloon-explorer.js?v=1"></script>
+  <script defer src="../assets/js/balloon-pipeline.js?v=1"></script>
 </head>
 <body>
   <header class="topbar">
@@ -55,13 +58,38 @@
       <h2>Idea</h2>
       <p>Wind turbines sit in the atmospheric surface layer and act like a sudden jump in surface roughness. An internal boundary layer grows through the farm, and shear at its edge pulls high-momentum air down through turbulent mixing. Following individual parcels of air through that process lets us see the mixing and entrainment as the flow itself does.</p>
       <figure class="fig"><img src="../assets/img/balloon-system.jpg" alt="A DJI Matrice 350 carries the balloon tracers to release height upwind of the wind turbines." loading="lazy"><figcaption>A DJI Matrice 350 carries the balloon tracers to release height upwind of the wind turbines.</figcaption></figure>
-      <h2>Explore in 3D</h2>
-      <figure class="viewer">
-        <model-viewer data-ground="#2b302d" data-ground-mat="Ground" src="../assets/models/balloon-farm.glb" alt="3D model of balloon tracers drifting through a wind farm" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="-30m 14m 0m" camera-orbit="-40deg 75deg 75m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
-          <div class="viewer-hint" slot="poster">Loading 3D model…</div>
-        </model-viewer>
-        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. Balloon tracers carrying sensor payloads drift with the wind through a schematic wind farm (balloons drawn 2.5× larger than life so they stand out).</figcaption>
-      </figure>
+      <h2>Explore the flights</h2>
+      <p>This is the real October 2025 campaign at the WINSENT test site: terrain from elevation data, all 36 turbines in the area at their actual positions and hub heights, and the seven sonde tracks from Launches A, B and C. Press play to fly them on their recorded timing, or drag the slider to scrub through the flights.</p>
+      <div class="bx" id="bx">
+        <div class="bx-stage">
+          <model-viewer data-tracks="../assets/data/balloon-tracks.json?v=1" src="../assets/models/balloon-real.glb?v=1" alt="3D terrain model of the WINSENT test site with wind turbines and the recorded balloon tracks"
+            camera-controls autoplay touch-action="pan-y" interaction-prompt="none" tone-mapping="neutral" exposure="1.05" shadow-intensity="0"
+            camera-target="12500m 900m -600m" camera-orbit="-14deg 63deg 25000m" field-of-view="32deg"
+            min-camera-orbit="auto 5deg 1500m" max-camera-orbit="auto 86deg 70000m">
+            <div class="viewer-hint" slot="poster">Loading terrain and tracks…</div>
+          </model-viewer>
+          <div class="bx-legend">
+            <button class="bx-chip" type="button" data-launch="A" aria-pressed="true" style="--c:#ED7D31"><i></i>Launch A <small>09:50</small></button>
+            <button class="bx-chip" type="button" data-launch="B" aria-pressed="true" style="--c:#5B9BD5"><i></i>Launch B <small>13:52</small></button>
+            <button class="bx-chip" type="button" data-launch="C" aria-pressed="true" style="--c:#70AD47"><i></i>Launch C <small>14:44</small></button>
+          </div>
+          <div class="bx-note"><div class="label">Vertical scale ×3</div><div class="label">Balloons enlarged</div></div>
+        </div>
+        <div class="bx-controls">
+          <button class="bx-play" type="button" aria-label="Pause">❚❚</button>
+          <input class="bx-range" type="range" min="0" max="38" step="0.01" value="0" aria-label="Flight time">
+          <div class="bx-time"><span>T + 0:00</span><small>1 s = 1 min of flight</small></div>
+        </div>
+        <div class="bx-panels">
+          <div class="bx-panel"><div class="label"><span>Map · top view</span><span>Turbines ·</span></div><canvas data-view="map" aria-label="Map of balloon tracks and turbines"></canvas></div>
+          <div class="bx-panel"><div class="label"><span>Side view · altitude</span><span>Terrain under the tracks</span></div><canvas data-view="profile" aria-label="Balloon altitude against distance east"></canvas></div>
+        </div>
+        <table class="bx-table">
+          <thead><tr><th>Sonde</th><th>Height above ground</th><th>From release</th><th class="opt">Temp.</th><th class="opt">Humidity</th><th class="opt">Pressure</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p class="bx-cap">Launches are overlaid from their release time (local time, 24 Oct 2025). Tracks use the cleaned radiosonde data from the paper (pre-launch rows trimmed, outliers removed). Terrain: SRTM-based elevation tiles; turbine positions and sizes from OpenStreetMap. Heights, terrain and turbines are drawn with 3× vertical exaggeration.</p>
+      </div>
 
       <h2>System</h2>
       <ul>
@@ -70,6 +98,16 @@
         <li>Velocity and temperature profiles from the meteorological masts set the stability of the boundary layer for each launch, and onboard sensors were cross-validated against sonic anemometers and mast sensors.</li>
       </ul>
       <div class="fig-grid"><figure class="fig"><img src="../assets/img/balloon-winsent.jpg" alt="The WINSENT research wind turbines and meteorological masts." loading="lazy"><figcaption>The WINSENT research wind turbines and meteorological masts.</figcaption></figure><figure class="fig"><img src="../assets/img/balloon-profiles.jpg" alt="Mean wind speed and temperature profiles from the met mast for the three launches." loading="lazy"><figcaption>Mean wind speed and temperature profiles from the met mast for the three launches.</figcaption></figure></div>
+      <h2>From balloon to boundary layer</h2>
+      <p>How a single flight turns into information about the atmosphere around a wind farm.</p>
+      <div class="bp" id="bp">
+        <div class="bp-step reveal"><div><div class="bp-n">01</div><h3>Release</h3><p>A drone lifts the payload to release height upwind of the turbines and lets the balloons go one at a time.</p></div><canvas data-step="release" aria-label="Schematic: drone releasing balloons upwind of turbines"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">02</div><h3>Drift &amp; measure</h3><p>Each neutrally buoyant balloon follows the air through and around the turbine wakes, while its radiosonde samples position, pressure, temperature and humidity.</p></div><canvas data-step="drift" aria-label="Schematic: balloon drifting through a turbine wake while sampling"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">03</div><h3>Telemetry</h3><p>The radiosonde streams its measurements by radio to a receiver on the ground, so nothing has to be recovered.</p></div><canvas data-step="telemetry" aria-label="Schematic: radiosonde telemetry to a ground receiver"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">04</div><h3>Tracks to profiles</h3><p>Differencing the GPS track gives the air's velocity along its path; combined with temperature and pressure it gives wind and potential-temperature profiles, and from those the stability of the boundary layer.</p></div><canvas data-step="profile" aria-label="Schematic: from track velocity to wind and temperature profiles"></canvas></div>
+        <p class="bp-note">Schematic illustration; not measured data.</p>
+      </div>
+
       <h2>Results</h2>
       <p>Across three launches, the tracers passed through the turbines near the launch site and then through or around a second wind farm downstream, covering about 30 km. The tracks and the pressure, altitude and humidity profiles along them show that the method can resolve mixing over large distances with useful spatial and temporal resolution. Next we will compare the field data with large eddy simulations from the Johns Hopkins Turbulence Database.</p>
       <div class="fig-grid"><figure class="fig"><img src="../assets/img/balloon-tracks.jpg" alt="Radiosonde tracks for the three launches over the surrounding wind farms." loading="lazy"><figcaption>Radiosonde tracks for the three launches over the surrounding wind farms.</figcaption></figure><figure class="fig"><img src="../assets/img/balloon-altitude.jpg" alt="Tracer altitude against distance traveled, compared with ground elevation." loading="lazy"><figcaption>Tracer altitude against distance traveled, compared with ground elevation.</figcaption></figure></div>
