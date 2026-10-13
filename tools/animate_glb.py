@@ -7,7 +7,7 @@ paths.json  bubble trajectories from: Blender -b scene.blend --python tools/bake
 
 Animation (one loop = one particle lifetime, 187 frames at 24 fps):
   * rotor spins clockwise seen from upstream, REVS whole turns per loop
-  * translucent LED light cone rises from the ground panel through the measurement volume
+  * 12-tile LED panel (one row of the scene's 4x4 removed); its light cone rises through the measurement volume
   * drone and met mast materials brightened so they read on a dark background
   * tip-vortex helix rotates with the rotor; for a helix, rotating about its axis is
     the same as convecting downstream (measured handedness: dAngle/dx < 0 in glTF frame)
@@ -144,8 +144,17 @@ for bi, b in enumerate(data["bubbles"]):
 nodes.append(group)
 roots.append(len(nodes) - 1)
 
+# ---------- LED panel: 12 tiles (3 x 4) instead of the scene's 4 x 4 ----------
+# drop the row of tiles at x = -4.5 m (Blender coords): Cube.002/.003/.004/.016
+DROP = {"Cube.002", "Cube.003", "Cube.004", "Cube.016"}
+drop_idx = {i for i, n in enumerate(nodes) if n.get("name") in DROP}
+for n in nodes:
+    if "children" in n:
+        n["children"] = [c for c in n["children"] if c not in drop_idx]
+roots[:] = [r for r in roots if r not in drop_idx]
+
 # ---------- light cone from the LED panel into the measurement volume ----------
-# LED panel: 4x4 tiles centred at (-6, -6) m on the ground; measurement volume ~8-24 m up.
+# LED panel: 3x4 tiles centred at (-6.5, -6) m on the ground; measurement volume ~8-24 m up.
 def cone(bottom, r0, top, r1, a0, a1, seg=48, rings=6):
     P, C, I = [], [], []
     for j in range(rings + 1):
@@ -169,7 +178,7 @@ if "KHR_materials_unlit" not in gl["extensionsUsed"]:
 gl["materials"].append({"name": "LEDBeam", "alphaMode": "BLEND", "doubleSided": True,
                         "pbrMetallicRoughness": {"baseColorFactor": [1, 1, 1, 1], "metallicFactor": 0, "roughnessFactor": 1},
                         "extensions": {"KHR_materials_unlit": {}}})
-cp, cc, ci = cone([-6, -6, 0.25], 2.4, [-4.5, -6, 25.0], 8.5, 0.30, 0.0)
+cp, cc, ci = cone([-6.5, -6, 0.25], 2.2, [-4.8, -6, 25.0], 8.5, 0.30, 0.0)
 gl["meshes"].append({"name": "LEDBeam", "primitives": [{
     "attributes": {"POSITION": accessor(cp, "VEC3", minmax=True, target=34962),
                    "COLOR_0": accessor(cc, "VEC4", target=34962)},
