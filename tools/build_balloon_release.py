@@ -20,7 +20,7 @@ The launch rig (as built by the owner):
     stays with the drone.
   * each balloon's string runs through a rod into the dome; the burn mechanism (heated wires)
     sits inside the dome, at the centre.
-  * four balloons sit at the rod tips; each carries its own small radiosonde hanging below it,
+  * four balloons hang below the rod tips on short strings; each carries its own small radiosonde hanging below it,
     so each balloon is an individual tracer.
 
 Stage 1 (Blender, in memory): starts from the farm scene, removes its 20 static balloon
@@ -28,12 +28,12 @@ tracers, adds the "Ground" plane/material (name used by assets/js/site.js), appe
 drone (objects of collection "Drone" in the drone .blend) under an empty "DroneRig", and
 builds the hub ("Hub", with the burn glow "Glow" as a child), four balloon tracers
 ("Balloon1-4": balloon + string + radiosonde), four thick hub strings ("Tether1-4") and four
-balloon strings ("BString1-4", rod tip -> balloon). Drone, hub and balloons are all drawn
+balloon strings ("BString1-4", rod tip -> balloon top), plus a "Stand"/"StandBase" post under the resting hub. Drone, hub and balloons are all drawn
 S_D (4.5x) larger than life. Exports a Draco-compressed GLB.
 
 Stage 2 (pure Python, same file): adds the animation "Release" (LOOP = 20 s):
-   0.0- 2.0  drone on the ground; the hub rests on the ground beside it with the four
-             balloons at its rod tips (thick strings slack)
+   0.0- 2.0  drone on the ground; the hub rests on the ground beside it on a slim launch stand (so the balloons
+             hang clear of the ground), the four balloons hanging below its rod tips
    1.0- 2.0  propellers spin up
    2.0- 7.5  vertical climb to release height (drone at ~28 m) upwind of the farm; the thick
              strings go taut and lift the hub, which hangs ~6 m below the drone
@@ -67,7 +67,11 @@ HUB_ATTACH = [(0.03 * (1 if i in (0, 3) else -1), 0.03 * (1 if i in (0, 1) else 
 ROD_YAW = math.radians(20)                       # rods at 20, 110, 200, 290 deg (reads as 4 from the default view)
 DIRS = [(math.cos(ROD_YAW + k * math.pi / 2), math.sin(ROD_YAW + k * math.pi / 2)) for k in range(4)]
 BAL_RAD, BAL_SQ = 0.19, 1.08                     # balloon radius and vertical stretch
-BAL_OUT, BAL_UP = 0.50, 0.42                     # balloon centre: radius / height in hub frame
+BAL_OUT = ROD_TIP                                # balloons hang straight below the rod tips
+STR_B = 0.12                                     # string length rod tip -> balloon top (real m)
+BAL_DROP = STR_B + BAL_RAD * BAL_SQ              # rod tip -> balloon centre (real m)
+SONDE_BOT = BAL_RAD * BAL_SQ + 0.225             # balloon centre -> bottom of the radiosonde (real m)
+HUB_REST = (BAL_DROP + SONDE_BOT - ROD_Z) * S_D + 0.2   # resting hub height: hanging sondes just clear the ground
 BAL_BOTTOM = BAL_RAD * BAL_SQ                    # balloon centre -> balloon bottom (string knot)
 
 
@@ -127,7 +131,7 @@ def stage1(out, drone_blend):
             location=(c * (ROD_R0 + L / 2), s * (ROD_R0 + L / 2), ROD_Z),
             rotation=(0, math.pi / 2, math.atan2(s, c)))
     hub = join(parts, "Hub")
-    hub.location = (X0 - R_GROUND, Y0, 0)
+    hub.location = (X0 - R_GROUND, Y0, HUB_REST)
     glow = mat("BurnGlow", (1.0, 0.45, 0.08))
     bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=0.07 * S_D)
     gl_ = bpy.context.object; gl_.name = "Glow"; gl_.data.materials.append(glow)
@@ -152,7 +156,13 @@ def stage1(out, drone_blend):
         d = bal.copy(); d.name = "Balloon%d" % i; sc.collection.objects.link(d); balloons.append(d)
     for i, o in enumerate(balloons):
         c, s = DIRS[i]
-        o.location = (X0 - R_GROUND + c * BAL_OUT * S_D, Y0 + s * BAL_OUT * S_D, BAL_UP * S_D)
+        o.location = (X0 - R_GROUND + c * BAL_OUT * S_D, Y0 + s * BAL_OUT * S_D, HUB_REST + (ROD_Z - BAL_DROP) * S_D)
+    # launch stand: a slim post that holds the hub up on the ground so the balloons can hang below the rod tips
+    bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.09, depth=HUB_REST - 0.02,
+                                        location=(X0 - R_GROUND, Y0, (HUB_REST - 0.02) / 2))
+    stand = bpy.context.object; stand.name = "Stand"; stand.data.materials.append(mat("MountDark", (0.08, 0.08, 0.09)))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.6, depth=0.08, location=(X0 - R_GROUND, Y0, 0.04))
+    stand2 = bpy.context.object; stand2.name = "StandBase"; stand2.data.materials.append(stand.data.materials[0])
 
     # ---- drone
     with bpy.data.libraries.load(drone_blend, link=False) as (src, dst):
@@ -312,20 +322,20 @@ def hub_pos(t):
     """hub origin (dome base centre): resting beside the drone, then dragged in and lifted"""
     a = add(drone_pos(t), [0, 0, 0.075 * S_D])     # centre of the string attach points
     top = 0.068 * S_D
-    dz = a[2] - top
+    dz = a[2] - top - HUB_REST
     r = math.sqrt(max(L_T ** 2 - dz ** 2, 0.0)) if dz > 0 else R_GROUND
     r = smax(smin(r, R_GROUND, 0.8), 0.0, 0.8)
     z_hang = a[2] - math.sqrt(max(L_T ** 2 - r ** 2, 0.0)) - top
-    z = smax(z_hang, 0.0, 0.3) - 0.15                # smooth max(hang, ground); -0.15 = smax offset
+    z = smax(z_hang, HUB_REST, 0.3) - 0.15           # smooth max(hang, rest height); -0.15 = smax offset
     lean = 0.8 * smooth(T_CLIMB0 + 2.0, T_CLIMB1 + 0.5, t) * (1 - smooth(T_DESC0 + 1.0, T_DESC1 - 1.5, t))
     sway = 0.15 * math.sin(1.3 * t) * smooth(T_CLIMB1 - 1, T_CLIMB1, t) * (1 - smooth(T_DESC0, T_DESC0 + 2, t))
-    return [X0 - r - lean + sway, Y0, max(z, 0.0)]
+    return [X0 - r - lean + sway, Y0, max(z, HUB_REST)]
 
 
 def balloon_on_hub(t, i):
     h = hub_pos(t)
     c, s = DIRS[i]
-    return [h[0] + c * BAL_OUT * S_D, h[1] + s * BAL_OUT * S_D, h[2] + BAL_UP * S_D]
+    return [h[0] + c * BAL_OUT * S_D, h[1] + s * BAL_OUT * S_D, h[2] + (ROD_Z - BAL_DROP) * S_D]
 
 
 def balloon_pos(t, i):
@@ -462,7 +472,7 @@ def build(static, out):
         track(nm, "rotation", [axis_q([0, 1, 0], balloon_yaw(t, i)) for t in times])
         track(nm, "scale", [[v, v, v] for v in scl])
         tips = [add(h, [c * ROD_TIP * S_D, s * ROD_TIP * S_D, ROD_Z * S_D]) for h in hubs]
-        knots = [add(p, [0, 0, -BAL_BOTTOM * S_D * v]) for p, v in zip(pos, scl)]
+        knots = [add(p, [0, 0, BAL_BOTTOM * S_D * v]) for p, v in zip(pos, scl)]
         vis = [0.0 if T_CUT <= t < T_NEW0 else (v if t >= T_NEW0 else 1.0) for t, v in zip(times, scl)]
         strings("BString%d" % (i + 1), tips, knots, vis)
 
