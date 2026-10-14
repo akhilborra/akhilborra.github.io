@@ -348,12 +348,14 @@ async function boot() {
   canvas.addEventListener('pointerdown', () => { interacted = true; setActive(true); kick(); });
   canvas.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') setActive(false); });
   document.addEventListener('pointerdown', (e) => { if (!stage.contains(e.target)) setActive(false); });
-  controls.addEventListener('change', () => { kick(); });
+  let controlsMoved = false;
+  controls.addEventListener('change', () => { controlsMoved = true; kick(); });
 
-  /* ---------- sizing ---------- */
+  /* ---------- sizing (resolution capped at 1.25x, lowered automatically on slow devices) ---------- */
+  let resScale = 1, slowFrames = 0;
   function resize() {
     const w = Math.max(10, stage.clientWidth), h = Math.max(10, stage.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25) * resScale);
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix(); kick();
   }
@@ -363,11 +365,17 @@ async function boot() {
   let visible = true, raf = 0, last = 0, phi = 0.4;
   new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { last = 0; kick(); } }).observe(stage);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; kick(); } });
-  const motion = () => (!reduced || interacted) && visible && !document.hidden;
+  // the particles and rotor are only visible through the cutaway, so animate only while it is open
+  const motion = () => (!reduced || interacted) && visible && !document.hidden && doorT > 0.02;
+  const FRAME_MIN = 1000 / 30;   // animate at up to 30 fps; camera moves still render immediately
   function kick() { if (!raf && visible) raf = requestAnimationFrame(frame); }
   function frame(now) {
     raf = 0;
+    if (last && !tween && now - last < FRAME_MIN - 1 && !controlsMoved) { raf = requestAnimationFrame(frame); return; }
+    controlsMoved = false;
     const dt = last ? Math.min(0.05, Math.max(0, (now - last) / 1000)) : 0; last = now;
+    // adaptive resolution: if frames keep taking > 45 ms, render fewer pixels (down to 0.6x)
+    if (dt > 0.045) { if (++slowFrames > 20 && resScale > 0.6) { resScale = Math.max(0.6, resScale - 0.2); slowFrames = 0; resize(); } } else slowFrames = Math.max(0, slowFrames - 1);
     if (tween) {
       const f = Math.max(0, Math.min(1, (performance.now() - tween.t0) / tween.dur)), e = ease(f);
       camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0v, tween.t1, e);
