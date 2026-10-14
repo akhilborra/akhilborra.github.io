@@ -9,7 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css?v=10">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=7"></script>
+  <script defer src="../assets/js/rotor-schematic.js?v=1"></script>
 </head>
 <body>
   <header class="topbar">
@@ -42,7 +44,7 @@
         <div class="label reveal">Max Planck Institute · 2025–present</div>
         <h1 class="display reveal" style="margin-top:18px">Rotor performance at high Reynolds number</h1>
         <p class="lede reveal">Model wind turbines in ordinary wind tunnels run at Reynolds numbers far below those of utility-scale rotors, so their performance doesn't transfer directly. A pressurized tunnel closes that gap. I'm measuring how power, thrust and optimal blade pitch change as the chord Reynolds number climbs into the millions.</p>
-        <dl class="facts reveal"><div><dt>Facility</dt><dd>Variable Density Turbulence Tunnel</dd></div><div><dt>Measured</dt><dd>C_P, C_T vs. Re and pitch</dd></div><div><dt>Modeling</dt><dd>OpenFAST (BEM)</dd></div><div><dt>DAQ</dt><dd>LabVIEW + NI hardware</dd></div></dl>
+        <dl class="facts reveal"><div><dt>Facility</dt><dd>Variable Density Turbulence Tunnel, 1–15 bar</dd></div><div><dt>Measured</dt><dd>C_P, C_T vs. Re and pitch</dd></div><div><dt>Modeling</dt><dd>OpenFAST (BEM)</dd></div><div><dt>DAQ</dt><dd>LabVIEW + NI hardware</dd></div></dl>
       </div>
     </header>
 
@@ -51,18 +53,55 @@
         <article class="prose">
 
 
-      <h2>Campaign</h2>
-      <p>I planned and ran a campaign in the Variable Density Turbulence Tunnel at MPI-DS that measured the power and thrust coefficients of a model wind turbine across Reynolds number and blade pitch angle, and built the LabVIEW acquisition pipeline that ran it.</p>
+      <h2>Motivation</h2>
+      <p>The Reynolds number sets how a flow around a blade behaves, and for rotors it is the main thing that separates a lab model from a utility turbine. A model turbine in an ordinary wind tunnel runs at a chord Reynolds number far below that of a full-size rotor, so its blades work in a different boundary-layer regime and its power, thrust and best pitch angle do not transfer directly.</p>
+      <p>A pressurized tunnel closes the gap without changing the model. Raising the gas pressure raises its density, and with it the Reynolds number, at the same speed and the same rotor size. That lets one model turbine be tested from the low Reynolds numbers of a conventional tunnel up into the millions.</p>
+      <div class="pipeline" id="rotor-schematic">
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">01</span><h3>Pressure raises Reynolds number</h3>
+            <p>In the pressurized tunnel the speed and the rotor stay the same while the gas gets denser. The Reynolds number, which scales with density, speed and chord length, rises with the pressure.</p></div>
+          <canvas data-step="re" aria-label="Animated schematic of a tunnel with a model rotor: as the pressure rises the gas fills with more molecules at the same speed, and gauges for pressure and Reynolds number rise together"></canvas>
+        </div>
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">02</span><h3>Measuring power and thrust</h3>
+            <p>At each condition the turbine's torque and rotation speed give its mechanical power, and strain gauges give the thrust. Normalizing by the kinetic energy and dynamic pressure of the wind gives the power coefficient and the thrust coefficient.</p></div>
+          <canvas data-step="meas" aria-label="Animated schematic of a spinning model rotor with its torque, speed and thrust feeding the power coefficient and thrust coefficient"></canvas>
+        </div>
+        <div class="step reveal">
+          <div class="step-text"><span class="step-n">03</span><h3>Sweeping the pitch</h3>
+            <p>Repeating this at different blade pitch angles traces out a power curve. Its maximum marks the optimal pitch, which can shift as the Reynolds number changes.</p></div>
+          <canvas data-step="pitch" aria-label="Animated schematic of a blade section changing pitch angle while a power coefficient curve is traced and its maximum is marked"></canvas>
+        </div>
+      </div>
+      <p class="pipeline-note">Schematic illustration; not measured data.</p>
+
+      <h2>Setup</h2>
+      <p>The measurements are done in the Variable Density Turbulence Tunnel (VDTT) at the Max Planck Institute for Dynamics and Self-Organization, where the gas pressure can be varied, and the model turbine is a MoWiTO 0.6 built by ForWind.</p>
+      <figure class="viewer">
+        <model-viewer id="rotor-model" data-ground="#1e2220" src="../assets/models/rotor-vdtt.glb?v=1" alt="Schematic 3D model of a model wind turbine inside a cut-away tunnel test section, with flow arrows" autoplay camera-controls touch-action="pan-y" interaction-prompt="none" exposure="1.05" camera-target="0.1m 0.55m 0m" camera-orbit="-32deg 74deg 3.3m" field-of-view="28deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
+          <div class="viewer-hint" slot="poster">Loading 3D model…</div>
+          <button class="viewer-btn" type="button" aria-label="Pause animation">Pause</button>
+        </model-viewer>
+        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. A schematic model wind turbine in a cut-away tunnel test section. The turbine layout follows the MoWiTO 0.6 manual; the rotor diameter, tunnel size and blade shape are illustrative, not CAD of the real VDTT. Arrows show the flow direction only.</figcaption>
+      </figure>
+      <div class="fig-grid"><figure class="fig"><img src="../assets/img/rotor-2.jpg" alt="Wide view of a large red pressure vessel on a blue steel frame, with a grey mezzanine walkway and measurement tables in a bright hall" loading="lazy"><figcaption>The Variable Density Turbulence Tunnel at MPI-DS: the pressure vessel, its supporting frame and the instrumentation area.</figcaption></figure><figure class="fig"><img src="../assets/img/rotor-3.jpg" alt="Three-bladed model wind turbine with a white spinner and aluminium nacelle on a tower, mounted on a base plate with taped sensor wiring" loading="lazy"><figcaption>The MoWiTO 0.6 model wind turbine on its instrumented base plate with the load-cell wiring.</figcaption></figure></div>
+      <p>According to its manual, the turbine pitches all three blades together with an encoder-equipped stepper motor, and a generator with its own encoder provides the rotation speed. The generator's power is calculated from its voltage and the current through a 0.1 &Omega; shunt resistor, and its electrical load, and so its torque, is set through a field-effect transistor. The turbine's control electronics are an NI cRIO with NI modules, operated from LabVIEW.</p>
+      <p>I built the LabVIEW and NI acquisition pipeline that runs the campaign. Beyond the turbine itself, I am designing test stands to measure the efficiency of the rotor's internal drivetrain, and calibrating the strain gauges used for thrust.</p>
+
+      <h2>Measurements</h2>
+      <p>The campaign measures the power coefficient <em>C</em><sub>P</sub> and the thrust coefficient <em>C</em><sub>T</sub> across Reynolds number and blade pitch angle. Reynolds number is varied through the tunnel pressure, from about 1 to 15 bar, and through the wind speed. At each pressure and speed the rotor speed is stepped by changing the generator load, and the run is repeated at different pitch angles.</p>
+      <p>Each run is saved as a time series. The run files are named by tunnel pressure, reference wind speed from the Pitot tube and rotor speed in rpm, and hold the logged channels, including generator torque, mechanical power and the resulting <em>C</em><sub>P</sub>, which I average over each run.</p>
+      <p>Two corrections make the numbers comparable with open-air rotors. The thrust is calibrated against a load cell, and the wind speed at the rotor is corrected for the blockage of the tunnel walls using a one-dimensional momentum model of a rotor in a closed test section.</p>
+
+      <h2>Modeling</h2>
+      <p>I am benchmarking an OpenFAST blade element momentum model of the same turbine against the measurements, to quantify its prediction errors and trace them to their physical sources, in particular how they change with Reynolds number.</p>
+      <p>I am also designing a new rotor in CAD, scaled from the IEA 15 MW reference turbine, for fabrication and testing in the tunnel.</p>
+
+      <h2>Results</h2>
+      <!-- DATA-PLOT: interactive C_P/C_T explorer, to do -->
       <figure class="fig"><img src="../assets/img/vdtt-cp.jpg" alt="Power coefficient against chord Reynolds number, colored by tip-speed ratio. Performance rises steeply at low Re before leveling off above about 2 × 10⁶." loading="lazy"><figcaption>Power coefficient against chord Reynolds number, colored by tip-speed ratio. Performance rises steeply at low Re before leveling off above about 2 × 10⁶.</figcaption></figure>
-      <h2>Optimal pitch</h2>
       <p>The pitch angle that maximizes power also shifts with Reynolds number. That matters when lab-scale results are used to tune control strategies for real turbines.</p>
       <figure class="fig"><img src="../assets/img/vdtt-pitch.jpg" alt="Optimal pitch angle against chord Reynolds number, colored by tip-speed ratio." loading="lazy"><figcaption>Optimal pitch angle against chord Reynolds number, colored by tip-speed ratio.</figcaption></figure>
-      <h2>Ongoing work</h2>
-      <ul>
-        <li>Designing test stands to measure the efficiency of the rotor's internal drivetrain and calibrating the strain gauges used for thrust.</li>
-        <li>Designing a new rotor in CAD, scaled from the IEA 15 MW reference turbine, for fabrication and testing.</li>
-        <li>Benchmarking an OpenFAST blade element momentum model against the measurements to quantify its prediction errors and trace their physical sources.</li>
-      </ul>
 
     
         </article>
