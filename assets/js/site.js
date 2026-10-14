@@ -36,6 +36,7 @@
 
   document.querySelectorAll(".viewer-btn").forEach(btn => {
     const mv = btn.closest("model-viewer");
+    if (!mv) return;   // e.g. the trajectory player's button, wired by its own script
     const sync = () => { btn.textContent = mv.paused ? "Play" : "Pause"; };
     btn.addEventListener("click", () => { mv.paused ? mv.play() : mv.pause(); sync(); });
     ["play", "pause", "load"].forEach(ev => mv.addEventListener(ev, sync));

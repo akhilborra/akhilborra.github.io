@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=8">
+  <link rel="stylesheet" href="../assets/css/style.css?v=9">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
-  <script defer src="../assets/js/site.js?v=5"></script>
+  <script defer src="../assets/js/site.js?v=6"></script>
   <link rel="stylesheet" href="../assets/css/balloon.css?v=4">
   <script defer src="../assets/js/balloon-explorer.js?v=4"></script>
-  <script defer src="../assets/js/balloon-pipeline.js?v=3"></script>
+  <script defer src="../assets/js/balloon-pipeline.js?v=4"></script>
 </head>
 <body>
   <header class="topbar">
@@ -61,14 +61,24 @@
       <h2>Experimental design</h2>
       <ul>
         <li><strong>Tracers.</strong> I designed an integrated hardware and software payload that pairs neutrally buoyant balloons with radiosondes, which transmit position, pressure, temperature and humidity to a ground receiver.</li>
-        <li><strong>Release.</strong> A DJI Matrice 350 drone lifts the payload and releases the tracers at a controlled height upstream of the turbines.</li>
+        <li><strong>Release.</strong> I designed the release mechanism: a custom payload on a DJI Matrice 350 drone that carries four balloon tracers at a time. At release height upstream of the turbines, wires in the payload are heated and burn through the balloons' strings, setting the tracers free in the flow.</li>
         <li><strong>Reference.</strong> Velocity and temperature profiles from the meteorological masts set the stability of the boundary layer for each launch, and the onboard sensors are cross-validated against sonic anemometers and mast sensors.</li>
       </ul>
+      <h3>How a flight works</h3>
+      <p>What happens on each flight, from release to the information the system provides.</p>
+      <div class="bp" id="bp">
+        <div class="bp-step reveal"><div><div class="bp-n">01</div><h3>Heated-wire release</h3><p>The drone carries four balloons on strings beneath the payload and climbs to release height upwind of the turbines. There, heated wires in the payload burn through the strings and the balloons drift off downwind.</p></div><canvas data-step="release" aria-label="Schematic: drone payload releasing four balloons by burning through their strings upwind of turbines"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">02</div><h3>Drift &amp; measure</h3><p>Each neutrally buoyant balloon follows the air through and around the turbine wakes, while its radiosonde samples position, pressure, temperature and humidity along the way.</p></div><canvas data-step="drift" aria-label="Schematic: balloon drifting through a turbine wake while sampling"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">03</div><h3>Telemetry</h3><p>The radiosonde streams its measurements by radio to a receiver on the ground during the flight, so nothing has to be recovered.</p></div><canvas data-step="telemetry" aria-label="Schematic: radiosonde telemetry to a ground receiver"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">04</div><h3>Tracks to profiles</h3><p>Each GPS track gives the air's velocity along its path. Together with temperature and pressure, the system provides wind and potential-temperature profiles, and from those the stability of the boundary layer.</p></div><canvas data-step="profile" aria-label="Schematic: from track velocity to wind and temperature profiles"></canvas></div>
+        <p class="bp-note">Schematic illustration; not measured data.</p>
+      </div>
       <figure class="viewer">
-        <model-viewer data-ground="#2b302d" data-ground-mat="Ground" src="../assets/models/balloon-farm.glb" alt="3D model of balloon tracers drifting through a wind farm" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="-30m 14m 0m" camera-orbit="-40deg 75deg 75m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
+        <model-viewer id="release-model" data-ground="#2b302d" data-ground-mat="Ground" src="../assets/models/balloon-release.glb?v=1" alt="Animated 3D model: a drone lifts four balloon tracers, heated wires release them, and they drift downwind through a wind farm" autoplay camera-controls touch-action="pan-y" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="4m 13m -13m" camera-orbit="22deg 76deg 72m" field-of-view="40deg" max-field-of-view="45deg" min-camera-orbit="auto 0deg 5m" max-camera-orbit="auto 88deg auto">
           <div class="viewer-hint" slot="poster">Loading 3D model…</div>
+          <button class="viewer-btn" type="button" aria-label="Pause animation">Pause</button>
         </model-viewer>
-        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. Balloon tracers carrying sensor payloads drift with the wind through a schematic wind farm (balloons drawn 2.5× larger than life so they stand out).</figcaption>
+        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. The drone lifts four balloon tracers to release height upwind of the turbines. Heated wires in the payload burn through the strings (orange glow), and the balloons drift downwind through the wind farm while the drone returns to the ground. The drone is drawn 4.5× and the balloons 2.5× larger than life; distances and timing are schematic.</figcaption>
       </figure>
 
       <h2>Campaign</h2>
@@ -117,19 +127,8 @@
         <p class="bx-cap">Launches are overlaid from their release time (local time, 24 Oct 2025). Tracks use the cleaned radiosonde data from the paper (pre-launch rows trimmed, outliers removed). Terrain: SRTM-based elevation tiles; turbine positions and sizes from OpenStreetMap. Heights, terrain and turbines are drawn with 3× vertical exaggeration.</p>
       </div>
 
-      <h2>Processing</h2>
-      <p>How a single flight turns into information about the atmosphere around a wind farm.</p>
-      <div class="bp" id="bp">
-        <div class="bp-step reveal"><div><div class="bp-n">01</div><h3>Release</h3><p>A drone lifts the payload to release height upwind of the turbines and lets the balloons go one at a time.</p></div><canvas data-step="release" aria-label="Schematic: drone releasing balloons upwind of turbines"></canvas></div>
-        <div class="bp-step reveal"><div><div class="bp-n">02</div><h3>Drift &amp; measure</h3><p>Each neutrally buoyant balloon follows the air through and around the turbine wakes, while its radiosonde samples position, pressure, temperature and humidity.</p></div><canvas data-step="drift" aria-label="Schematic: balloon drifting through a turbine wake while sampling"></canvas></div>
-        <div class="bp-step reveal"><div><div class="bp-n">03</div><h3>Telemetry</h3><p>The radiosonde streams its measurements by radio to a receiver on the ground, so nothing has to be recovered.</p></div><canvas data-step="telemetry" aria-label="Schematic: radiosonde telemetry to a ground receiver"></canvas></div>
-        <div class="bp-step reveal"><div><div class="bp-n">04</div><h3>Tracks to profiles</h3><p>Differencing the GPS track gives the air's velocity along its path; combined with temperature and pressure it gives wind and potential-temperature profiles, and from those the stability of the boundary layer.</p></div><canvas data-step="profile" aria-label="Schematic: from track velocity to wind and temperature profiles"></canvas></div>
-        <p class="bp-note">Schematic illustration; not measured data.</p>
-      </div>
-
       <h2>Results</h2>
-      <p>Across three launches, the tracers passed through the turbines near the launch site and then through or around a second wind farm downstream, covering about 30 km. The tracks and the pressure, altitude and humidity profiles along them show that the method can resolve mixing over large distances with useful spatial and temporal resolution. Next we will compare the field data with large eddy simulations from the Johns Hopkins Turbulence Database.</p>
-      <div class="fig-grid"><figure class="fig"><img src="../assets/img/balloon-tracks.jpg" alt="Radiosonde tracks for the three launches over the surrounding wind farms." loading="lazy"><figcaption>Radiosonde tracks for the three launches over the surrounding wind farms.</figcaption></figure><figure class="fig"><img src="../assets/img/balloon-altitude.jpg" alt="Tracer altitude against distance traveled, compared with ground elevation." loading="lazy"><figcaption>Tracer altitude against distance traveled, compared with ground elevation.</figcaption></figure></div>
+      <p>Across three launches, the tracers passed through the turbines near the launch site and then through or around a second wind farm downstream, covering about 30 km, as the flight explorer above shows. The tracks and the pressure, altitude and humidity profiles along them show that the method can resolve mixing over large distances with useful spatial and temporal resolution. Next we will compare the field data with large eddy simulations from the Johns Hopkins Turbulence Database.</p>
       <div class="callout"><p><strong>Paper:</strong> A. Borra, F. Falkinhoff, M. Grunwald, G. Bagheri, E. Bodenschatz, C. E. Brunner. <em>A Lagrangian tracer system using balloons to study wind farm interactions with the atmospheric boundary layer.</em> J. Phys.: Conf. Ser. (TORQUE 2026). <a href="https://doi.org/10.1088/1742-6596/3224/3/032122">doi:10.1088/1742-6596/3224/3/032122</a></p></div>
     </article>
       </div>

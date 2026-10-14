@@ -71,3 +71,10 @@ python3 tools/build_balloon_scene.py "path/to/SMARTIES/Field Campaigns/Winsent_O
 
 It needs numpy, pandas and pillow. The balloon page's explorer (`assets/js/balloon-explorer.js`) and
 schematic (`assets/js/balloon-pipeline.js`) use their own stylesheet, `assets/css/balloon.css`.
+
+### Added models and data (October 2026)
+
+- `assets/models/balloon-release.glb` — animated drone release of four balloons (heated-wire payload) through the farm:
+  `/Applications/Blender.app/Contents/MacOS/Blender -b path/to/wind_farm.blend --python tools/build_balloon_release.py -- assets/models/balloon-release.glb`
+- `assets/data/lpt-tracks.bin` — all measured LPT trajectories (March 2026) for the Results player `assets/js/lpt-tracks.js`:
+  `python3 tools/build_lpt_tracks.py "path/to/Winterthur March 2026/vortex_fitting/trajectories.h5" assets/data/lpt-tracks.bin` (needs numpy, h5py)

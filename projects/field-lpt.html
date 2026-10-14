@@ -8,9 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=8">
+  <link rel="stylesheet" href="../assets/css/style.css?v=9">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
-  <script defer src="../assets/js/site.js?v=5"></script>
+  <script defer src="../assets/js/site.js?v=6"></script>
+  <script defer src="../assets/js/lpt-tracks.js?v=1"></script>
   <script defer src="../assets/js/pipeline.js?v=11"></script>
 </head>
 <body>
@@ -44,7 +45,7 @@
         <div class="label reveal">Max Planck Institute · 2025–present</div>
         <h1 class="display reveal" style="margin-top:18px">Field-scale particle tracking of tip vortices</h1>
         <p class="lede reveal">Tip vortices set both how much power the outer blade produces and how the wake develops downstream, yet almost nothing is known about how real atmospheric turbulence affects their formation and breakdown. I developed a field-scale Lagrangian particle tracking system to measure them directly behind an operating turbine.</p>
-        <dl class="facts reveal"><div><dt>Turbine</dt><dd>OST Aventa 6.5 kW, Winterthur (CH)</dd></div><div><dt>Rotor</dt><dd>12.8 m diameter, 18 m hub</dd></div><div><dt>Measurement volume</dt><dd>≈ 8 × 10 × 6 m</dd></div><div><dt>Acquisition</dt><dd>4 Phantom VEO4K-990 at 900 Hz</dd></div></dl>
+        <dl class="facts reveal"><div><dt>Turbine</dt><dd>OST Aventa 6.5 kW, Winterthur (CH)</dd></div><div><dt>Rotor</dt><dd>12.8 m diameter, 18 m hub</dd></div><div><dt>Measurement volume</dt><dd>≈ 8 × 10 × 6 m</dd></div><div><dt>Acquisition</dt><dd>4 Phantom VEO4K-990, 300–930 Hz</dd></div></dl>
       </div>
     </header>
 
@@ -60,7 +61,7 @@
       <ul>
         <li><strong>Seeding.</strong> Helium-filled soap bubbles (HFSB) from a custom bubble generator, which I designed and built to be lifted to hub height by a DJI Matrice 350 drone upstream of the rotor.</li>
         <li><strong>Illumination.</strong> Sunlight during the day, or a panel of 12 LEDs on the ground shining up into the measurement volume at night. Each bubble shows up as bright glare points that the cameras can track.</li>
-        <li><strong>Imaging.</strong> Four synchronized Phantom VEO4K-990 cameras at 900 Hz. Their shared field of view, about 8 × 10 × 6 m, sits 15 m above the ground in the near wake.</li>
+        <li><strong>Imaging.</strong> Four synchronized Phantom VEO4K-990 cameras recording at 300–930 Hz. Their shared field of view, about 8 × 10 × 6 m, sits 15 m above the ground in the near wake.</li>
       </ul>
       <figure class="viewer">
         <model-viewer id="lpt-model" data-ground="none" src="../assets/models/lpt-setup.glb?v=5" autoplay alt="3D model of the field particle-tracking setup at the wind turbine" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="8deg" interaction-prompt="auto" shadow-intensity="0.6" exposure="1.05" camera-target="0m 14m 2m" camera-orbit="-50deg 78deg 48m" field-of-view="40deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
@@ -72,7 +73,8 @@
 
       <h2>Campaign</h2>
       <p>I led the field campaigns at the OST Aventa 6.5 kW turbine in Winterthur, Switzerland, from test planning through on-site execution: an initial test campaign in October 2025, followed by the main campaign in March 2026. The setup runs by day with sunlight and by night with the LED panel. The work was presented at the <em>Recent Advances in Turbulent Wind Farm Dynamics</em> colloquium in London (2026).</p>
-      <figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="The setup during the October 2025 test campaign in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras view the near wake." loading="lazy"><figcaption>The setup during the October 2025 test campaign in Winterthur: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras view the near wake.</figcaption></figure>
+      <figure class="fig"><img src="../assets/img/lpt-march2026.jpg" alt="Drone photo at dusk of the Aventa wind turbine above Winterthur, with a drone and tethered bubble generator to the right of the rotor, LED tiles and equipment on the ground, and a white Max Planck Institute van" loading="lazy"><figcaption>The setup during the March 2026 campaign in Winterthur: the drone holds the bubble generator on its tether upstream of the rotor, with the high-speed cameras, the LED panel and the field van on the ground.</figcaption></figure>
+      <div class="fig-grid"><figure class="fig"><img src="../assets/img/lpt-march2026-2.jpg" alt="Night view of the wind turbine lit brightly from below by the ground LED panel, with the drone tether and the field van" loading="lazy"><figcaption>Night measurements in March 2026: the LED panel on the ground lights up the rotor and the bubbles drifting through the measurement volume.</figcaption></figure><figure class="fig"><img src="../assets/img/lpt-setup.jpg" alt="Labelled setup during the October 2025 test campaign: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras view the near wake." loading="lazy"><figcaption>Labelled setup during the October 2025 test campaign: a drone-lifted bubble generator seeds the flow upstream of the rotor, while four high-speed cameras view the near wake.</figcaption></figure></div>
       <figure class="fig"><img src="../assets/img/lpt-frame.jpg" alt="A frame from the high-speed recordings with the turbine and illuminated tracer bubbles." loading="lazy"><figcaption>A frame from the high-speed recordings with the turbine and illuminated tracer bubbles.</figcaption></figure>
 
       <h2>Processing</h2>
@@ -80,7 +82,7 @@
       <div class="pipeline" id="pipeline">
         <div class="step reveal">
           <div class="step-text"><span class="step-n">01</span><h3>Four views</h3>
-            <p>Four synchronized high-speed cameras film the measurement volume from different angles at 900 frames per second. Each soap bubble shows up as a pair of bright glare points.</p></div>
+            <p>Four synchronized high-speed cameras film the measurement volume from different angles at hundreds of frames per second (300–930 Hz, depending on the recording). Each soap bubble shows up as a pair of bright glare points.</p></div>
           <canvas data-step="cams" aria-label="Animated schematic of four camera views showing moving glare points"></canvas>
         </div>
         <div class="step reveal">
@@ -102,7 +104,14 @@
       <p class="pipeline-note">Schematic with synthetic particles around an idealized tip vortex, not measured data. Processing uses OpenLPT.</p>
 
       <h2>Results</h2>
-      <p>The March 2026 recordings are being processed into 3D Lagrangian tracks with OpenLPT. The next step is to extract the tip vortex from the trajectories and follow its core position, size and strength through breakdown under real atmospheric inflow. Results will be added here as they come in.</p>
+      <p>So far, 38,551 bubble trajectories have been reconstructed from 18 recordings of the March 2026 campaign. The next step is to extract the tip vortex from them and follow its core position, size and strength through breakdown under real atmospheric inflow.</p>
+      <figure class="lpt-tracks" id="lpt-tracks" data-src="../assets/data/lpt-tracks.bin?v=1">
+        <div class="lpt-stage">
+          <canvas aria-label="Animated 3D view of all 38,551 measured helium-filled soap bubble trajectories from the March 2026 campaign, coloured by speed, playing in real time"></canvas>
+          <button class="viewer-btn lpt-play" type="button" aria-pressed="false">Pause</button>
+        </div>
+        <figcaption><span class="badge">Measured data</span>All 38,551 bubble trajectories reconstructed from 18 recordings of the March 2026 campaign behind the Aventa turbine, played back in real time. The recordings, 2 to 17 s each at 300–930 Hz, are overlaid on a common clock starting at each one's first frame. Tracks are shown at about 40 samples per second with a 0.45 s fading tail; colour is the measured bubble speed. Drag to rotate.</figcaption>
+      </figure>
       <div class="callout"><p>In collaboration with Mano Grunwald and Claudia Brunner (MPI-DS).</p></div>
 
     </article>
