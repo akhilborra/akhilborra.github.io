@@ -33,24 +33,39 @@
     for (let k = 0; k < 3; k++) { const a = t * 2.2 + k * 2.094; ctx.beginPath(); ctx.moveTo(x, gy - H); ctx.lineTo(x + Math.cos(a) * H * 0.42, gy - H + Math.sin(a) * H * 0.42); ctx.stroke(); }
     dot(ctx, x, gy - H, 2.2 * s, "#ecebe5");
   }
-  // One tracer as built: four red balloons on a light cross-shaped frame around a central white sensor,
-  // seen slightly from the side so the ring reads as a tilted ellipse. (x, y) is the central sensor.
-  function tracer(ctx, x, y, t, s = 1) {
-    const R = 14.5 * s, r = 5.8 * s, rot = 0.4 + 0.3 * Math.sin(t * 0.45);
-    const pts = [0, 1, 2, 3].map(k => {
-      const a = rot + k * Math.PI / 2, px = x + Math.cos(a) * R;
-      return { x: px, y: y + 3 * s + Math.sin(a) * R * 0.5 + (px - x) * 0.18, z: Math.sin(a) };
-    }).sort((p, q) => p.z - q.z);
-    const arm = p => { ctx.strokeStyle = "rgba(236,235,229,.75)"; ctx.lineWidth = 1.2 * s; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(p.x, p.y); ctx.stroke(); };
-    const ball = p => {
-      const back = p.z < 0, g = ctx.createRadialGradient(p.x - r * .35, p.y - r * .4, 0.5, p.x, p.y, r);
-      g.addColorStop(0, back ? "#e98a80" : "#ffd2cc"); g.addColorStop(.3, back ? "#b23a31" : "#d9453a"); g.addColorStop(1, back ? "#7d241e" : "#9e2b23");
-      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fillStyle = g; ctx.fill();
-    };
-    const hub = () => { dot(ctx, x, y, 3.4 * s, "#ecebe5"); dot(ctx, x, y, 1.3 * s, "#59605b"); };
-    pts.forEach(p => { if (p.z < 0) { arm(p); ball(p); } });
-    hub();
-    pts.forEach(p => { if (p.z >= 0) { arm(p); ball(p); } });
+  // One tracer: a red balloon with its own radiosonde hanging below it on a short string. (x, y) is the balloon centre.
+  function balloon(ctx, x, y, s = 1) {
+    const r = 6 * s;
+    ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + r); ctx.lineTo(x, y + r + 7 * s); ctx.stroke();
+    ctx.fillStyle = "#ecebe5"; ctx.fillRect(x - 2.5 * s, y + r + 7 * s, 5 * s, 4 * s);
+    const g = ctx.createRadialGradient(x - r * .35, y - r * .4, 0.5, x, y, r);
+    g.addColorStop(0, "#ffd2cc"); g.addColorStop(.3, "#d9453a"); g.addColorStop(1, "#9e2b23");
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = g; ctx.fill();
+  }
+  // Launch hub (part of the release payload, not the tracer): a white half-dome with four horizontal
+  // carbon-fibre rods, seen slightly from the side. Returns the rod-tip positions, back to front.
+  function hubTips(x, y, t, s = 1) {
+    const Lr = 24 * s, rot = 0.39 + 0.08 * Math.sin(t * 0.5);
+    return [0, 1, 2, 3].map(k => { const a = rot + k * Math.PI / 2; return { x: x + Math.cos(a) * Lr, y: y + Math.sin(a) * Lr * 0.3, z: Math.sin(a) }; }).sort((p, q) => p.z - q.z);
+  }
+  function hub(ctx, x, y, tips, heat, s = 1) {
+    const R = 7 * s;
+    ctx.strokeStyle = "#3a3f3b"; ctx.lineWidth = 1.8 * s; ctx.lineCap = "round";
+    tips.forEach(p => { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    ctx.strokeStyle = "rgba(236,235,229,.28)"; ctx.lineWidth = 0.7 * s;
+    tips.forEach(p => { ctx.beginPath(); ctx.moveTo(x, y - 0.6 * s); ctx.lineTo(p.x, p.y - 0.6 * s); ctx.stroke(); });
+    ctx.lineCap = "butt";
+    // dome: flat base at y, rounded top
+    ctx.beginPath(); ctx.arc(x, y, R, Math.PI, 0); ctx.closePath(); ctx.fillStyle = "#e4e3dd"; ctx.fill();
+    ctx.strokeStyle = "#a9aeaa"; ctx.lineWidth = 1; ctx.stroke();
+    // burn wires inside the dome, glowing warm orange while heated
+    if (heat > 0) {
+      const G = 4 + 10 * heat, g = ctx.createRadialGradient(x, y - R * 0.4, 0, x, y - R * 0.4, G);
+      g.addColorStop(0, `rgba(255,190,110,${0.95 * heat})`); g.addColorStop(0.45, `rgba(237,125,49,${0.5 * heat})`); g.addColorStop(1, "rgba(237,125,49,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y - R * 0.4, G, 0, 7); ctx.fill();
+    }
+    ctx.strokeStyle = heat > 0 ? `rgba(255,${Math.round(150 + 60 * heat)},90,${0.6 + 0.4 * heat})` : "rgba(201,168,107,.8)";
+    ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x - 3 * s, y - R * 0.4); ctx.lineTo(x + 3 * s, y - R * 0.4); ctx.stroke();
   }
   function drone(ctx, x, y, t) {
     ctx.strokeStyle = "#d9d8d2"; ctx.lineWidth = 2;
@@ -60,15 +75,16 @@
   }
 
   const steps = {
-    // 01 heated-wire release: the drone carries one tracer (four balloons around a central sensor) on strings,
-    // climbs to release height upwind of the turbines, heats the burn wires until the strings part, and the
-    // tracer drifts downwind with nothing attached above it.
+    // 01 heated-wire release: the drone carries the launch hub (half-dome + four carbon-fibre rods) on four
+    // strings; a balloon with its own radiosonde hangs from each rod tip, its string running through the rod
+    // into the dome. At release height the wires inside the dome burn all four strings at once and the four
+    // balloons drift off downwind as individual tracers; the hub stays under the drone.
     release(ctx, w, h, t) {
       const gy = h * 0.82; backdrop(ctx, w, h, gy);
       turbine(ctx, w * 0.70, gy, h * 0.42, t); turbine(ctx, w * 0.86, gy, h * 0.42, t + 1);
       const P = 8, ph = (t % P) / P;
       const ease = f => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
-      const x0 = w * 0.16, yRel = gy - h * 0.6, yLow = gy - 84, L = 44;
+      const x0 = w * 0.16, yRel = gy - h * 0.62, yLow = gy - 96, L = 26, hang = 8;
       const sway = 3 * Math.sin(t * 1.3);
       // drone altitude: climb, hover for heating/release, descend; fade in/out so the cycle loops cleanly
       let dy = ph < 0.3 ? yLow + (yRel - yLow) * ease(ph / 0.3) : ph < 0.7 ? yRel : yRel + (yLow - yRel) * ease(Math.min(1, (ph - 0.7) / 0.25));
@@ -76,58 +92,58 @@
       const droneA = ph < 0.06 ? ph / 0.06 : ph > 0.9 ? Math.max(0, (1 - ph) / 0.1) : 1;
       const TC = 0.48, cut = ph >= TC;
       const heat = ph < 0.3 ? 0 : ph < TC ? (ph - 0.3) / (TC - 0.3) : Math.max(0, 1 - (ph - TC) / 0.14);
-      const att = [-9, -3, 3, 9];
+      const hx = x0 + 1.2 * Math.sin(t * 1.1), hy = dy + 6 + L;
+      const tips = hubTips(hx, hy, cut ? (TC * P) : t);
       // release-height marker
       ctx.strokeStyle = "rgba(201,168,107,.45)"; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
-      ctx.beginPath(); ctx.moveTo(x0 + 30, yRel + 10); ctx.lineTo(w * 0.6, yRel + 10); ctx.stroke(); ctx.setLineDash([]);
-      label(ctx, "Release height", x0 + 36, yRel + 4, C.brass);
+      ctx.beginPath(); ctx.moveTo(x0 + 34, yRel + 6); ctx.lineTo(w * 0.6, yRel + 6); ctx.stroke(); ctx.setLineDash([]);
+      label(ctx, "Release height", x0 + 40, yRel, C.brass);
+      ctx.globalAlpha = droneA;
+      // four thick strings from the drone down to the dome
+      ctx.strokeStyle = "rgba(236,235,229,.6)"; ctx.lineWidth = 1.4; ctx.beginPath();
+      [-9, -3, 3, 9].forEach(a => { ctx.moveTo(x0 + a * 0.8, dy + 5); ctx.lineTo(hx + a * 0.35, hy - 6.5); }); ctx.stroke();
+      ctx.globalAlpha = 1;
       if (!cut) {
-        // tracer hangs from long thin strings that converge from the payload to the central sensor
+        // balloons hang from the rod tips, each with its radiosonde below
         ctx.globalAlpha = droneA;
-        const hx = x0 + 1.5 * Math.sin(t * 1.1), hy = dy + 10 + L;
-        ctx.strokeStyle = "rgba(236,235,229,.45)"; ctx.lineWidth = 0.8; ctx.beginPath();
-        att.forEach(a => { ctx.moveTo(x0 + a, dy + 10); ctx.lineTo(hx, hy - 3); }); ctx.stroke();
-        tracer(ctx, hx, hy, t);
+        const back = tips.filter(p => p.z < 0), front = tips.filter(p => p.z >= 0);
+        const hangOne = p => { const by = p.y + hang + 6; ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, by - 6); ctx.stroke(); balloon(ctx, p.x, by); };
+        back.forEach(hangOne);
+        hub(ctx, hx, hy, tips, heat);
+        front.forEach(hangOne);
         ctx.globalAlpha = 1;
       } else {
-        // strings are gone; the tracer drifts downwind on its own
+        ctx.globalAlpha = droneA; hub(ctx, hx, hy, tips, heat); ctx.globalAlpha = 1;
+        // strings are gone; four individual tracers drift downwind and spread apart
         const f = Math.min(1, (ph - TC) / 0.5), fa = f > 0.8 ? Math.max(0, (1 - f) / 0.2) : 1;
+        const relY = yRel + 6 + L, base = hubTips(x0, relY, TC * P);
         if (fa > 0) {
-          const sx = x0, sy = yRel + 10 + L;
           ctx.globalAlpha = fa;
-          tracer(ctx, sx + Math.pow(f, 1.15) * w * 0.95, sy - f * h * 0.05 + 5 * f * Math.sin(f * 10), t);
+          base.forEach((p, i) => {
+            const k = [2, 0, 3, 1][i];
+            const bx = p.x + Math.pow(f, 1.15) * w * (0.78 + 0.08 * k), by = p.y + hang + 6 + (k - 1.5) * f * h * 0.1 + 4 * f * Math.sin(f * 9 + k * 1.9);
+            balloon(ctx, bx, by);
+          });
           ctx.globalAlpha = 1;
         }
-        // sparks at the burn wires as the strings part
+        // sparks from the dome as the strings part
         if (ph < TC + 0.08) {
           const s = (ph - TC) / 0.08;
-          att.forEach((a, i) => { for (let k = 0; k < 3; k++) { const an = 0.6 + k * 0.95 + i; dot(ctx, x0 + a + Math.cos(an) * s * 10, dy + 11 + Math.sin(an) * s * 8 + s * s * 6, 1.3, `rgba(255,190,110,${1 - s})`); } });
+          for (let k = 0; k < 8; k++) { const an = -0.3 - k * 0.36; dot(ctx, hx + Math.cos(an) * s * 14, hy - 3 + Math.sin(an) * s * 9 + s * s * 8, 1.3, `rgba(255,190,110,${1 - s})`); }
         }
       }
-      // drone + payload
+      // drone
       ctx.globalAlpha = droneA;
       drone(ctx, x0, dy, t);
       ctx.fillStyle = "#2b322d"; ctx.strokeStyle = "#d9d8d2"; ctx.lineWidth = 1.2;
-      ctx.fillRect(x0 - 7, dy + 3, 14, 6); ctx.strokeRect(x0 - 7, dy + 3, 14, 6);
-      ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x0 - 13, dy + 10); ctx.lineTo(x0 + 13, dy + 10); ctx.stroke();
-      // burn wires: glow warm orange/brass while heated
-      att.forEach(a => {
-        const x = x0 + a, y = dy + 10;
-        if (heat > 0) {
-          const R = 4 + 7 * heat, g = ctx.createRadialGradient(x, y, 0, x, y, R);
-          g.addColorStop(0, `rgba(255,170,80,${0.85 * heat})`); g.addColorStop(0.45, `rgba(237,125,49,${0.45 * heat})`); g.addColorStop(1, "rgba(237,125,49,0)");
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill();
-        }
-        ctx.strokeStyle = heat > 0 ? `rgba(255,${Math.round(150 + 60 * heat)},${Math.round(90 + 30 * heat)},${0.5 + 0.5 * heat})` : "rgba(201,168,107,.7)";
-        ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - 2, y + 1); ctx.lineTo(x + 2, y + 1); ctx.stroke();
-      });
+      ctx.fillRect(x0 - 7, dy + 2, 14, 4); ctx.strokeRect(x0 - 7, dy + 2, 14, 4);
       ctx.globalAlpha = 1;
       const stage = ph < 0.3 ? "Climb to release height" : ph < TC ? "Heating burn wires" : ph < 0.62 ? "Strings part · release" : ph < 0.88 ? "Drift downwind" : "Drone returns";
       label(ctx, stage, 14, 22, C.brass);
       label(ctx, "Wind →", w - 14, 22, C.dim, "right");
     },
 
-    // 02 the tracer follows the flow through a turbine wake while the radiosonde samples
+    // 02 one balloon tracer follows the flow through a turbine wake while the radiosonde samples
     drift(ctx, w, h, t) {
       const gy = h * 0.84; backdrop(ctx, w, h, gy);
       const tx = w * 0.36, H = h * 0.38, hub = gy - H;
@@ -145,8 +161,8 @@
       ctx.strokeStyle = C.B; ctx.lineWidth = 2; ctx.beginPath(); pts.slice(0, j + 1).forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
       // sampling pings once per "second"
       for (let i = 0; i <= j; i += 8) dot(ctx, pts[i][0], pts[i][1], 2, C.brass);
-      const ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.beginPath(); ctx.arc(bx, by, 16 + ring * 18, 0, 7); ctx.stroke();
-      tracer(ctx, bx, by, t, 0.85);
+      const ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.beginPath(); ctx.arc(bx, by + 4, 12 + ring * 18, 0, 7); ctx.stroke();
+      balloon(ctx, bx, by);
       label(ctx, w < 480 ? "Samples: GPS · p · T · humidity" : "Samples: GPS position · pressure · temperature · humidity", 14, 22, C.brass);
     },
 
@@ -158,7 +174,7 @@
       ctx.strokeStyle = "rgba(201,168,107,.25)"; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(rx, ry - 34); ctx.stroke(); ctx.setLineDash([]);
       for (let k = 0; k < 3; k++) { const r = ((t * 0.8 + k / 3) % 1); ctx.strokeStyle = `rgba(201,168,107,${0.6 * (1 - r)})`; ctx.beginPath(); ctx.arc(bx, by, 10 + r * 40, -0.6, 0.9); ctx.stroke(); }
       for (let k = 0; k < 4; k++) { const f = ((t * 0.45 + k / 4) % 1); dot(ctx, bx + (rx - bx) * f, by + (ry - 34 - by) * f, 2.6, C.brass); }
-      tracer(ctx, bx, by, t, 0.95);
+      balloon(ctx, bx, by);
       // receiver: mast with antenna + laptop
       ctx.strokeStyle = "#d9d8d2"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx, ry - 34); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(rx - 10, ry - 34); ctx.lineTo(rx + 10, ry - 34); ctx.moveTo(rx - 6, ry - 28); ctx.lineTo(rx + 6, ry - 28); ctx.stroke();
