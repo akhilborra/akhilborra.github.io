@@ -1,0 +1,54 @@
+/* VDTT explorer (Setup section of the pressurized-tunnel page). Namespaced vx-. Uses style.css tokens. */
+.vx { margin: 40px 0; }
+@media (min-width: 1100px) { .prose > .vx { margin-left: -120px; margin-right: -120px; } }
+.vx-stage { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--rule);
+  background: radial-gradient(120% 90% at 50% 0%, #1d2320 0%, #121513 70%); height: min(72vh, 640px); min-height: 420px; }
+@media (max-width: 600px) { .vx-stage { height: 460px; min-height: 0; } }
+.vx-stage canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; outline: none; }
+.vx-stage canvas:active { cursor: grabbing; }
+.vx-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: .9rem; pointer-events: none; }
+.vx-msg[hidden] { display: none; }
+
+.vx-top { position: absolute; left: 14px; top: 14px; right: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; }
+.vx-top > * { pointer-events: auto; }
+.vx-btn { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  background: rgba(15, 18, 17, .78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--rule); color: var(--ink); font: 600 11px var(--sans); letter-spacing: .1em; text-transform: uppercase; }
+.vx-btn:hover { border-color: var(--brass); }
+.vx-btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.vx-btn[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: #0f1211; }
+.vx-btn i { width: 8px; height: 8px; border-radius: 50%; background: var(--brass); }
+.vx-btn[aria-pressed="true"] i { background: #0f1211; }
+
+.vx-gauge { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border-radius: 14px; background: rgba(15, 18, 17, .78);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--rule); }
+.vx-gauge svg { width: 62px; height: 62px; display: block; }
+.vx-gauge .tk { stroke: var(--ink-3); stroke-width: 1.2; }
+.vx-gauge .tx { fill: var(--ink-3); font: 600 7px var(--sans); }
+.vx-gauge .nd { transform-origin: 50px 52px; transition: transform .25s ease; }
+.vx-gauge b { display: block; font: 800 1.2rem/1 var(--display); font-stretch: 72%; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.vx-gauge small { display: block; font: 600 .6rem var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-top: 3px; }
+@media (max-width: 480px) { .vx-gauge svg { width: 46px; height: 46px; } .vx-gauge b { font-size: 1rem; } }
+
+.vx-hint { position: absolute; left: 14px; bottom: 12px; font: 600 11px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); pointer-events: none; }
+.vx-stage.is-active .vx-hint { opacity: .5; }
+
+.vx-panel { margin-top: 10px; padding: 18px 20px 16px; border-radius: 12px; border: 1px solid var(--rule); background: rgba(15, 18, 17, .72);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.vx-sliders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 28px; }
+@media (max-width: 700px) { .vx-sliders { grid-template-columns: 1fr; } }
+.vx-ctl label { display: flex; justify-content: space-between; align-items: baseline; font: 600 11px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.vx-ctl label output { color: var(--brass); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.vx-ctl input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; margin: 2px 0 0; --fill: 50%; }
+.vx-ctl input[type=range]::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--brass) var(--fill), var(--rule) var(--fill)); }
+.vx-ctl input[type=range]::-moz-range-track { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--brass) var(--fill), var(--rule) var(--fill)); }
+.vx-ctl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7.5px; border-radius: 50%; background: var(--ink); border: 2px solid var(--brass); }
+.vx-ctl input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); border: 2px solid var(--brass); }
+.vx-ctl input[type=range]:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 4px; }
+.vx-ctl small { display: block; color: var(--ink-3); font-size: .74rem; margin-top: 1px; }
+
+.vx-read { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); }
+@media (max-width: 700px) { .vx-read { grid-template-columns: repeat(2, 1fr); } .vx-read > div:last-child { grid-column: span 2; } }
+.vx-read dt { font: 600 10px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.vx-read dd { margin: 3px 0 0; font: 800 1.25rem/1.1 var(--display); font-stretch: 72%; text-transform: uppercase; font-variant-numeric: tabular-nums; color: var(--ink); }
+.vx-note { margin: 12px 0 0; font-size: .74rem; color: var(--ink-3); line-height: 1.5; }

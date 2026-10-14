@@ -9,7 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css?v=10">
-  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <link rel="stylesheet" href="../assets/css/vdtt.css?v=1">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+  <script type="module" src="../assets/js/vdtt-explorer.js?v=2"></script>
   <script defer src="../assets/js/site.js?v=7"></script>
   <script defer src="../assets/js/rotor-schematic.js?v=1"></script>
 </head>
@@ -77,12 +79,39 @@
 
       <h2>Setup</h2>
       <p>The measurements are done in the Variable Density Turbulence Tunnel (VDTT) at the Max Planck Institute for Dynamics and Self-Organization, where the gas pressure can be varied, and the model turbine is a MoWiTO 0.6 built by ForWind.</p>
-      <figure class="viewer">
-        <model-viewer id="rotor-model" data-ground="#1e2220" src="../assets/models/rotor-vdtt.glb?v=1" alt="Schematic 3D model of a model wind turbine inside a cut-away tunnel test section, with flow arrows" autoplay camera-controls touch-action="pan-y" interaction-prompt="none" exposure="1.05" camera-target="0.1m 0.55m 0m" camera-orbit="-32deg 74deg 3.3m" field-of-view="28deg" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 88deg auto">
-          <div class="viewer-hint" slot="poster">Loading 3D model…</div>
-          <button class="viewer-btn" type="button" aria-label="Pause animation">Pause</button>
-        </model-viewer>
-        <figcaption><span class="badge">Interactive 3D</span> Drag to orbit, scroll or pinch to zoom. A schematic model wind turbine in a cut-away tunnel test section. The turbine layout follows the MoWiTO 0.6 manual; the rotor diameter, tunnel size and blade shape are illustrative, not CAD of the real VDTT. Arrows show the flow direction only.</figcaption>
+      <figure class="vx" id="vdtt">
+        <div class="vx-stage">
+          <canvas tabindex="0" aria-label="Interactive 3D schematic of the Variable Density Turbulence Tunnel with a cutaway onto the model wind turbine in its test section. Drag to orbit."></canvas>
+          <div class="vx-msg">Loading 3D view…</div>
+          <div class="vx-top">
+            <button class="vx-btn" id="vx-toggle" type="button" aria-pressed="false"><i></i><span>Show inside</span></button>
+            <div class="vx-gauge" aria-hidden="true">
+              <svg viewBox="0 0 100 100"><path d="M18 75 A44 44 0 1 1 82 75" fill="none" stroke="rgba(236,235,229,.2)" stroke-width="5" stroke-linecap="round"/>
+                <g class="tk"><line x1="50" y1="12" x2="50" y2="19"/><line x1="18" y1="26" x2="23" y2="31"/><line x1="82" y1="26" x2="77" y2="31"/><line x1="10" y1="52" x2="17" y2="52"/><line x1="90" y1="52" x2="83" y2="52"/></g>
+                <g class="nd" id="vx-needle"><line x1="50" y1="52" x2="50" y2="20" stroke="#c9a86b" stroke-width="3" stroke-linecap="round"/></g>
+                <circle cx="50" cy="52" r="5" fill="#ecebe5"/></svg>
+              <div><b><span id="vx-gauge-val">5.0</span></b><small>bar (abs.)</small></div>
+            </div>
+          </div>
+          <div class="vx-hint">Drag to orbit · click, then scroll to zoom</div>
+        </div>
+        <div class="vx-panel">
+          <div class="vx-sliders">
+            <div class="vx-ctl"><label for="vx-p">Gas pressure <output id="vx-v-p">5.0 bar</output></label><input id="vx-p" type="range" min="1" max="15" step="0.1" value="5"><small>SF6, 1 to 15 bar, about 20 °C</small></div>
+            <div class="vx-ctl"><label for="vx-u">Wind speed <output id="vx-v-u">3.0 m/s</output></label><input id="vx-u" type="range" min="0.8" max="4.5" step="0.1" value="3"><small>Measured runs span about 0.8 to 4.5 m/s</small></div>
+            <div class="vx-ctl"><label for="vx-tsr">Tip-speed ratio <output id="vx-v-tsr">6.0</output></label><input id="vx-tsr" type="range" min="2" max="10" step="0.1" value="6"><small>rotor speed = TSR · U / R</small></div>
+            <div class="vx-ctl"><label for="vx-pitch">Blade pitch <output id="vx-v-pitch">0.0°</output></label><input id="vx-pitch" type="range" min="-5" max="25" step="0.5" value="0"><small>all three blades together</small></div>
+          </div>
+          <dl class="vx-read" aria-live="off">
+            <div><dt>Pressure</dt><dd id="vx-o-p">5.0 bar</dd></div>
+            <div><dt>Wind speed</dt><dd id="vx-o-u">3.0 m/s</dd></div>
+            <div><dt>Chord Re</dt><dd id="vx-o-re">0</dd></div>
+            <div><dt>Rotor speed</dt><dd id="vx-o-rpm">0 rpm</dd></div>
+            <div><dt>Pitch</dt><dd id="vx-o-pitch">0.0°</dd></div>
+          </dl>
+          <p class="vx-note">Chord Reynolds number Re<sub>c</sub> = ρ U<sub>rel</sub> c / μ, with the blade-relative speed U<sub>rel</sub> = U √(1 + (λ · 0.72)²) and c = 0.039 m (chord at 0.72 R) and SF6 at about 20 °C (ideal-gas density with a compressibility correction, μ ≈ 1.5 × 10⁻⁵ Pa·s). Approximate. The rotor and flow are shown in slow motion; the rotor speed readout is the real value.</p>
+        </div>
+        <figcaption><span class="badge">Interactive 3D</span> Schematic model, not CAD. The tunnel geometry is approximated from the published facility description (18.2 m × 5.3 m closed loop, two 1.84 m diameter cylinders, octagonal measurement section about 1.5 m × 1.3 m) and from photographs; fan and heat exchanger are not shown and the turbine's position in the section is assumed. The turbine is to scale (D = 0.6 m, hub height 0.52 m from my OpenFAST model, blade chord and twist from the same model) while the particles are illustrative: more of them at higher pressure. No measured data is shown.</figcaption>
       </figure>
       <div class="fig-grid"><figure class="fig"><img src="../assets/img/rotor-2.jpg" alt="Wide view of a large red pressure vessel on a blue steel frame, with a grey mezzanine walkway and measurement tables in a bright hall" loading="lazy"><figcaption>The Variable Density Turbulence Tunnel at MPI-DS: the pressure vessel, its supporting frame and the instrumentation area.</figcaption></figure><figure class="fig"><img src="../assets/img/rotor-3.jpg" alt="Three-bladed model wind turbine with a white spinner and aluminium nacelle on a tower, mounted on a base plate with taped sensor wiring" loading="lazy"><figcaption>The MoWiTO 0.6 model wind turbine on its instrumented base plate with the load-cell wiring.</figcaption></figure></div>
       <p>According to its manual, the turbine pitches all three blades together with an encoder-equipped stepper motor, and a generator with its own encoder provides the rotation speed. The generator's power is calculated from its voltage and the current through a 0.1 &Omega; shunt resistor, and its electrical load, and so its torque, is set through a field-effect transistor. The turbine's control electronics are an NI cRIO with NI modules, operated from LabVIEW.</p>
