@@ -13,7 +13,7 @@
   <script defer src="../assets/js/site.js?v=7"></script>
   <link rel="stylesheet" href="../assets/css/balloon.css?v=4">
   <script defer src="../assets/js/balloon-explorer.js?v=4"></script>
-  <script defer src="../assets/js/balloon-pipeline.js?v=6"></script>
+  <script defer src="../assets/js/balloon-pipeline.js?v=7"></script>
 </head>
 <body>
   <header class="topbar">
@@ -62,15 +62,15 @@
       <ul>
         <li><strong>Tracers.</strong> I designed an integrated hardware and software payload that pairs neutrally buoyant balloons with radiosondes, which transmit position, pressure, temperature and humidity to a ground receiver.</li>
         <li><strong>Release.</strong> I designed the launch payload for a DJI Matrice 350 drone: a half-dome hub with four carbon-fibre rods hangs below the drone, and four balloons, each carrying its own radiosonde, are held at the rod tips by strings that run through the rods into the hub. At release height upstream of the turbines, heated wires inside the hub burn through all four strings at once, and the balloons fly off as four individual tracers while the hub returns with the drone.</li>
-        <li><strong>Reference.</strong> Velocity and temperature profiles from the meteorological masts set the stability of the boundary layer for each launch, and the onboard sensors are cross-validated against sonic anemometers and mast sensors.</li>
+        <li><strong>Reference.</strong> The meteorological masts and sonic anemometers at the site provide reference measurements of wind and temperature, against which the onboard radiosonde sensors are cross-validated.</li>
       </ul>
       <h3>How a flight works</h3>
       <p>What happens on each flight, from release to the information the system provides.</p>
       <div class="bp" id="bp">
         <div class="bp-step reveal"><div><div class="bp-n">01</div><h3>Heated-wire release</h3><p>Below the drone hangs a half-dome hub with four carbon-fibre rods, and a balloon with its own radiosonde is held at each rod tip. The drone climbs to release height upwind of the turbines, where heated wires inside the hub burn through all four strings at once. The four balloons drift off downwind as individual tracers; the hub stays with the drone.</p></div><canvas data-step="release" aria-label="Schematic: drone with a four-rod launch hub releasing four balloons, each with a radiosonde, upwind of turbines"></canvas></div>
-        <div class="bp-step reveal"><div><div class="bp-n">02</div><h3>Drift &amp; measure</h3><p>Each neutrally buoyant balloon follows the air through and around the turbine wakes, while its radiosonde samples position, pressure, temperature and humidity along the way.</p></div><canvas data-step="drift" aria-label="Schematic: a balloon with its radiosonde drifting through a turbine wake while sampling"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">02</div><h3>Drift through the farm &amp; measure</h3><p>Each neutrally buoyant balloon follows the air through the whole wind farm, so its track shows when air is drawn down into the farm layer (entrainment) or carried back out of it, while its radiosonde samples position, pressure, temperature and humidity along the way.</p></div><canvas data-step="drift" aria-label="Schematic: side view of a wind farm with balloons, each with its own radiosonde, whose tracks dip into the wind-farm layer and rise back out"></canvas></div>
         <div class="bp-step reveal"><div><div class="bp-n">03</div><h3>Telemetry</h3><p>The radiosonde streams its measurements by radio to a receiver on the ground during the flight, so nothing has to be recovered.</p></div><canvas data-step="telemetry" aria-label="Schematic: radiosonde telemetry to a ground receiver"></canvas></div>
-        <div class="bp-step reveal"><div><div class="bp-n">04</div><h3>Tracks to profiles</h3><p>Each GPS track gives the air's velocity along its path. Together with temperature and pressure, the system provides wind and potential-temperature profiles, and from those the stability of the boundary layer.</p></div><canvas data-step="profile" aria-label="Schematic: from track velocity to wind and temperature profiles"></canvas></div>
+        <div class="bp-step reveal"><div><div class="bp-n">04</div><h3>Tracks to entrainment</h3><p>From each track we get the balloon's height relative to the turbines and the wind-farm layer over distance, and its vertical motion. These show where the air is entrained into the farm layer and where it leaves, which gives Lagrangian information about entrainment and mixing in the wind farm.</p></div><canvas data-step="profile" aria-label="Schematic: balloon height relative to the wind-farm layer and its vertical motion along the track, marking where it is entrained and where it leaves"></canvas></div>
         <p class="bp-note">Schematic illustration; not measured data.</p>
       </div>
       <figure class="viewer">
@@ -84,7 +84,7 @@
       <h2>Campaign</h2>
       <p>I led the field validation campaign at the WINSENT test site near Stuttgart in October 2025, with three launches (A, B and C) over the course of one day.</p>
       <div class="fig-grid"><figure class="fig"><img src="../assets/img/balloon-system.jpg" alt="A DJI Matrice 350 carries the balloon tracers to release height upwind of the wind turbines." loading="lazy"><figcaption>A DJI Matrice 350 carries the balloon tracers to release height upwind of the wind turbines.</figcaption></figure><figure class="fig"><img src="../assets/img/balloon-winsent.jpg" alt="The WINSENT research wind turbines and meteorological masts." loading="lazy"><figcaption>The WINSENT research wind turbines and meteorological masts.</figcaption></figure></div>
-      <figure class="fig"><img src="../assets/img/balloon-profiles.jpg" alt="Mean wind speed and temperature profiles from the met mast for the three launches." loading="lazy"><figcaption>Mean wind speed and temperature profiles from the met mast for the three launches.</figcaption></figure>
+      <figure class="fig video"><video src="../assets/video/balloon-launch.mp4" poster="../assets/img/balloon-launch-poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Video of a drone lifting the hub with four red balloons, climbing, releasing the balloons, which drift apart over the wind farm"></video><figcaption>Balloon launch at the WINSENT test site, 24 October 2025: takeoff with the hub and four balloons (2× speed), climb (7×), release in real time, and the four balloons drifting through the wind farm (6×, then 4×).</figcaption></figure>
       <h3>Explore the flights</h3>
       <p>This is the real October 2025 campaign at the WINSENT test site: terrain from elevation data, all 36 turbines in the area at their actual positions and hub heights, and the seven sonde tracks from Launches A, B and C. Press play to fly them on their recorded timing, or drag the slider to scrub through the flights.</p>
       <div class="bx" id="bx">
@@ -128,7 +128,7 @@
       </div>
 
       <h2>Results</h2>
-      <p>Across three launches, the tracers passed through the turbines near the launch site and then through or around a second wind farm downstream, covering about 30 km, as the flight explorer above shows. The tracks and the pressure, altitude and humidity profiles along them show that the method can resolve mixing over large distances with useful spatial and temporal resolution. Next we will compare the field data with large eddy simulations from the Johns Hopkins Turbulence Database.</p>
+      <p>Across three launches, the tracers passed through the turbines near the launch site and then through or around a second wind farm downstream, covering about 30 km, as the flight explorer above shows. The tracks and the pressure, altitude and humidity recorded along them show that the method can resolve mixing over large distances with useful spatial and temporal resolution. Next we will compare the field data with large eddy simulations from the Johns Hopkins Turbulence Database.</p>
       <div class="callout"><p><strong>Paper:</strong> A. Borra, F. Falkinhoff, M. Grunwald, G. Bagheri, E. Bodenschatz, C. E. Brunner. <em>A Lagrangian tracer system using balloons to study wind farm interactions with the atmospheric boundary layer.</em> J. Phys.: Conf. Ser. (TORQUE 2026). <a href="https://doi.org/10.1088/1742-6596/3224/3/032122">doi:10.1088/1742-6596/3224/3/032122</a></p></div>
     </article>
       </div>

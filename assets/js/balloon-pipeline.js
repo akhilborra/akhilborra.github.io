@@ -1,4 +1,4 @@
-// Schematic of the balloon measurement chain: release -> drift & measure -> telemetry -> profiles & stability.
+// Schematic of the balloon measurement chain: release -> drift through the farm & measure -> telemetry -> tracks to entrainment.
 // Synthetic, illustrative motion only (no measured values are shown).
 (() => {
   const root = document.getElementById("bp");
@@ -74,6 +74,15 @@
     for (const dx of [-18, 18]) { const s = Math.abs(Math.sin(t * 40 + dx)) * 9 + 3; ctx.beginPath(); ctx.moveTo(x + dx - s, y - 4); ctx.lineTo(x + dx + s, y - 4); ctx.stroke(); }
   }
 
+  // Shared schematic geometry for steps 02 and 04 (heights in units of hub height H; u = fraction of the way across the farm view).
+  const sstep = (a, b, u) => { const x = Math.min(1, Math.max(0, (u - a) / (b - a))); return x * x * (3 - 2 * x); };
+  const FARM0 = 0.22, FARM1 = 0.90;
+  // top of the wind-farm layer (internal boundary layer): grows downstream through the farm
+  const layerTop = u => 1.35 + 0.95 * sstep(FARM0, FARM1, u);
+  // two illustrative tracks: A is drawn down into the farm layer and back out; B stays low, then is carried out
+  const trackA = u => 2.5 - 1.75 * sstep(0.26, 0.46, u) + 1.35 * sstep(0.70, 0.93, u) + 0.07 * Math.sin(u * 40);
+  const trackB = u => 1.05 + 0.08 * Math.sin(u * 23) - 0.15 * sstep(0.3, 0.5, u) + 1.7 * sstep(0.62, 0.88, u);
+
   const steps = {
     // 01 heated-wire release: the drone carries the launch hub (half-dome + four carbon-fibre rods) on four
     // strings; a balloon with its own radiosonde hangs from each rod tip, its string running through the rod
@@ -143,27 +152,47 @@
       label(ctx, "Wind →", w - 14, 22, C.dim, "right");
     },
 
-    // 02 one balloon tracer follows the flow through a turbine wake while the radiosonde samples
+    // 02 balloons follow the air through a whole wind farm: drawn down into the farm layer (entrainment) and carried back out (detrainment)
     drift(ctx, w, h, t) {
-      const gy = h * 0.84; backdrop(ctx, w, h, gy);
-      const tx = w * 0.36, H = h * 0.38, hub = gy - H;
-      // wake: expanding, slightly darker region downstream of the rotor
-      ctx.fillStyle = C.wake; ctx.beginPath(); ctx.moveTo(tx, hub - H * 0.42); ctx.lineTo(w, hub - H * 0.75); ctx.lineTo(w, hub + H * 0.75); ctx.lineTo(tx, hub + H * 0.42); ctx.fill();
-      for (let k = 0; k < 7; k++) { const x = tx + 30 + ((t * 40 + k * 70) % (w - tx)); const r = 6 + (x - tx) / 40; ctx.strokeStyle = "rgba(236,235,229,.08)"; ctx.beginPath(); ctx.arc(x, hub + Math.sin(k * 2.1) * H * 0.3, r, t * 2 + k, t * 2 + k + 4); ctx.stroke(); }
-      turbine(ctx, tx, gy, H, t);
-      label(ctx, "Turbine wake", w - 14, hub - H * 0.55, C.dim, "right");
-      // path: smooth upstream, more meandering inside the wake
-      const P = 8, ph = (t % P) / P, pts = [];
-      for (let i = 0; i <= 120; i++) { const f = i / 120, x = w * 0.04 + f * w * 0.92, inW = Math.max(0, (x - tx) / (w - tx));
-        pts.push([x, hub - H * 0.18 + 4 * Math.sin(f * 9) + inW * 22 * Math.sin(f * 31) - f * 20]); }
-      ctx.strokeStyle = C.B + "66"; ctx.lineWidth = 1.5; ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
-      const j = Math.floor(ph * 120), [bx, by] = pts[j];
-      ctx.strokeStyle = C.B; ctx.lineWidth = 2; ctx.beginPath(); pts.slice(0, j + 1).forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
-      // sampling pings once per "second"
-      for (let i = 0; i <= j; i += 8) dot(ctx, pts[i][0], pts[i][1], 2, C.brass);
-      const ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.beginPath(); ctx.arc(bx, by + 4, 12 + ring * 18, 0, 7); ctx.stroke();
-      balloon(ctx, bx, by);
-      label(ctx, w < 480 ? "Samples: GPS · p · T · humidity" : "Samples: GPS position · pressure · temperature · humidity", 14, 22, C.brass);
+      const narrow = w < 480;
+      const gy = h * 0.88; backdrop(ctx, w, h, gy);
+      const H = h * 0.2, X = u => u * w, Y = z => gy - z * H;
+      // wind-farm layer: faint band under the growing top curve
+      const N = 60, top = [];
+      for (let i = 0; i <= N; i++) { const u = FARM0 + (FARM1 - FARM0) * i / N; top.push([X(u), Y(layerTop(u))]); }
+      ctx.beginPath(); ctx.moveTo(X(FARM0), gy); top.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.lineTo(X(FARM1), gy); ctx.closePath();
+      ctx.fillStyle = "rgba(201,168,107,.07)"; ctx.fill();
+      ctx.strokeStyle = "rgba(201,168,107,.6)"; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]); ctx.beginPath(); top.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
+      // turbines: a back row (smaller, fainter) and a front row, spread over the farm
+      const nT = narrow ? 5 : 7;
+      ctx.globalAlpha = 0.4;
+      for (let k = 0; k < nT; k++) turbine(ctx, X(FARM0 + 0.03 + (FARM1 - FARM0 - 0.02) * (k + 0.5) / nT), gy - 3, H * 0.78, t * 0.8 + k * 1.7, 0.75);
+      ctx.globalAlpha = 1;
+      for (let k = 0; k < nT; k++) turbine(ctx, X(FARM0 + (FARM1 - FARM0) * k / (nT - 1) * 0.96), gy, H, t + k * 0.9);
+      // wind arrows (streamwise flow) far above
+      for (let k = 0; k < 3; k++) { const x = ((t * 22 + k * w / 3) % (w + 40)) - 20, y = h * 0.09 + 0 * k; ctx.strokeStyle = "rgba(236,235,229,.14)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 18, y + 8); ctx.lineTo(x, y + 8); ctx.moveTo(x - 5, y + 4); ctx.lineTo(x, y + 8); ctx.lineTo(x - 5, y + 12); ctx.stroke(); }
+      label(ctx, "Wind →", w - 14, 22, C.dim, "right");
+      label(ctx, narrow ? "Dashed: farm layer top" : "Dashed: top of wind-farm layer", 14, 38, "rgba(201,168,107,.75)");
+      // tracks
+      const P = 14, ph = (t % P) / P, u0 = 0.04, u1 = 0.97, K = 160;
+      const run = (fn, col, lag) => {
+        const pts = []; for (let i = 0; i <= K; i++) { const u = u0 + (u1 - u0) * i / K; pts.push([X(u), Y(fn(u)), u]); }
+        const f = Math.min(1, Math.max(0, (ph - lag) / 0.8)), j = Math.floor(f * K);
+        ctx.lineWidth = 1.5; ctx.strokeStyle = col + "55"; ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+        // travelled part: brass while the balloon is inside the farm layer, blue outside
+        ctx.lineWidth = 2.4;
+        for (let i = 1; i <= j; i++) { const inside = fn(pts[i][2]) < layerTop(pts[i][2]) && pts[i][2] > FARM0; ctx.strokeStyle = inside ? C.brass : col; ctx.beginPath(); ctx.moveTo(pts[i - 1][0], pts[i - 1][1]); ctx.lineTo(pts[i][0], pts[i][1]); ctx.stroke(); }
+        for (let i = 0; i <= j; i += 10) dot(ctx, pts[i][0], pts[i][1], 1.8, C.brass);
+        if (f > 0 && f < 1) { const [bx, by] = pts[j], ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(bx, by + 4, 10 + ring * 14, 0, 7); ctx.stroke(); balloon(ctx, bx, by, 0.9); }
+        return pts;
+      };
+      const pa = run(trackA, C.B, 0.0);
+      run(trackB, C.Cc, 0.0);
+      // annotations on track A
+      const ia = pa[Math.round((0.36 - u0) / (u1 - u0) * K)], id = pa[Math.round((0.83 - u0) / (u1 - u0) * K)];
+      label(ctx, "Entrained", ia[0] + 8, ia[1] - 10, C.text);
+      label(ctx, "Carried out", id[0] - 6, id[1] - 18, C.text, "right");
+      label(ctx, narrow ? "Samples: GPS · p · T · RH" : "Samples: GPS position · pressure · temperature · humidity", 14, 22, C.brass);
     },
 
     // 03 telemetry packets travel to a ground receiver
@@ -190,41 +219,39 @@
       }
     },
 
-    // 04 from Lagrangian track to boundary-layer information
+    // 04 from Lagrangian track to entrainment information (schematic, qualitative axes)
     profile(ctx, w, h, t) {
       ctx.fillStyle = C.sky1; ctx.fillRect(0, 0, w, h);
-      const narrow = w < 480;
-      // left: track in x-z with velocity arrows from GPS differencing
-      const L = { x: 14, y: 30, w: narrow ? w - 28 : w * 0.5, h: narrow ? h * 0.36 : h - 60 };
-      ctx.strokeStyle = C.grid; ctx.strokeRect(L.x, L.y, L.w, L.h);
-      const tr = []; for (let i = 0; i <= 80; i++) { const f = i / 80; tr.push([L.x + 8 + f * (L.w - 16), L.y + L.h * (0.75 - 0.5 * f) + 8 * Math.sin(f * 12)]); }
-      ctx.strokeStyle = C.Cc; ctx.lineWidth = 1.8; ctx.beginPath(); tr.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
-      const k = Math.floor(((t * 0.25) % 1) * 70) + 2;
-      for (let i = 4; i < 78; i += 10) {
-        const [x0, y0] = tr[i], [x1, y1] = tr[i + 2], dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy), s = 16 / l;
-        const on = Math.abs(i - k) < 6; ctx.strokeStyle = on ? C.brass : "rgba(201,168,107,.7)"; ctx.lineWidth = on ? 2 : 1.3;
-        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + dx * s, y0 + dy * s); ctx.stroke();
-        const ax = x0 + dx * s, ay = y0 + dy * s, an = Math.atan2(dy, dx);
-        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax - 5 * Math.cos(an - .5), ay - 5 * Math.sin(an - .5)); ctx.lineTo(ax - 5 * Math.cos(an + .5), ay - 5 * Math.sin(an + .5)); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
-      }
-      dot(ctx, tr[k][0], tr[k][1], 4, C.Cc);
-      label(ctx, "Track → velocity (Δx / Δt)", L.x, 20, C.brass);
-      // right: profiles of wind speed and potential temperature, stability from dθ/dz
-      const R = narrow ? { x: 52, y: L.y + L.h + 26, w: w - 66, h: h - (L.y + L.h + 26) - 12 } : { x: w * 0.5 + 54, y: 30, w: w * 0.5 - 70, h: h - 60 };
-      ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(R.x, R.y); ctx.lineTo(R.x, R.y + R.h); ctx.lineTo(R.x + R.w, R.y + R.h); ctx.stroke();
-      const prog = reduce ? 1 : Math.min(1, ((t * 0.25) % 1) * 1.3);
-      const n = Math.floor(prog * 40);
-      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.beginPath();
-      for (let i = 0; i <= n; i++) { const z = i / 40, u = 0.25 + 0.6 * Math.pow(z, 0.28); const x = R.x + u * R.w, y = R.y + R.h - z * R.h; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
-      ctx.strokeStyle = C.red; ctx.beginPath();
-      for (let i = 0; i <= n; i++) { const z = i / 40, th = 0.35 + 0.08 * z + (z > 0.45 ? 0.35 * (z - 0.45) : 0); const x = R.x + th * R.w, y = R.y + R.h - z * R.h; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
-      label(ctx, "Height", R.x - 6, R.y + 4, C.dim, "right");
-      label(ctx, "Wind speed U", R.x + R.w * 0.62, R.y + 12, C.ink);
-      label(ctx, "Potential temp. θ", R.x + R.w * 0.62, R.y + 26, C.red);
-      if (prog > 0.7) {
-        ctx.fillStyle = "rgba(201,168,107,.12)"; const yz = R.y + R.h * (1 - 0.45); ctx.fillRect(R.x + 1, R.y, R.w - 1, yz - R.y);
-        label(ctx, "dθ/dz > 0 → stable layer", R.x + 8, yz - 8, C.brass);
-      }
+      const narrow = w < 480, px = narrow ? 26 : 34;
+      const A = { x: px, y: 34, w: w - px - 16, h: (h - 84) * 0.56 };
+      const B = { x: px, y: A.y + A.h + 34, w: A.w, h: h - (A.y + A.h + 34) - 22 };
+      const u0 = 0.04, u1 = 0.97, K = 120, X = (R, u) => R.x + (u - u0) / (u1 - u0) * R.w;
+      const zmax = 3.9, ZY = z => A.y + A.h - (z / zmax) * A.h;
+      // panel A: height of the track against the top of the farm layer
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x, A.y + A.h); ctx.lineTo(A.x + A.w, A.y + A.h); ctx.stroke();
+      const tp = []; for (let i = 0; i <= K; i++) { const u = u0 + (u1 - u0) * i / K; tp.push([X(A, u), ZY(u > FARM0 ? layerTop(u) : 1.35 * 0 + layerTop(FARM0)), u]); }
+      ctx.beginPath(); ctx.moveTo(X(A, FARM0), A.y + A.h); tp.filter(p => p[2] >= FARM0 && p[2] <= FARM1).forEach(p => ctx.lineTo(p[0], p[1])); ctx.lineTo(X(A, FARM1), A.y + A.h); ctx.closePath(); ctx.fillStyle = "rgba(201,168,107,.08)"; ctx.fill();
+      ctx.strokeStyle = "rgba(201,168,107,.65)"; ctx.setLineDash([5, 4]); ctx.beginPath(); tp.filter(p => p[2] >= FARM0 && p[2] <= FARM1).forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); ctx.setLineDash([]);
+      const f = reduce ? 1 : Math.min(1, ((t * 0.2) % 1) * 1.25), n = Math.floor(f * K);
+      const tr = []; for (let i = 0; i <= K; i++) { const u = u0 + (u1 - u0) * i / K; tr.push([X(A, u), ZY(trackA(u)), u]); }
+      ctx.lineWidth = 2.2;
+      for (let i = 1; i <= n; i++) { const u = tr[i][2], inside = trackA(u) < layerTop(u) && u > FARM0; ctx.strokeStyle = inside ? C.brass : C.B; ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke(); }
+      dot(ctx, tr[n][0], tr[n][1], 4, C.B);
+      label(ctx, narrow ? "Height vs. farm layer (dashed)" : "Track height vs. top of farm layer (dashed)", A.x, 20, C.brass);
+      label(ctx, "↑", A.x - 6, A.y + 8, C.dim, "right");
+      // panel B: vertical motion of the balloon (from the track), downward = drawn into the farm
+      ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(B.x, B.y); ctx.lineTo(B.x, B.y + B.h); ctx.stroke();
+      const mid = B.y + B.h / 2; ctx.strokeStyle = C.grid; ctx.beginPath(); ctx.moveTo(B.x, mid); ctx.lineTo(B.x + B.w, mid); ctx.stroke();
+      const vz = i => { const a = tr[Math.max(0, i - 2)], b = tr[Math.min(K, i + 2)]; return -(b[1] - a[1]) / (b[0] - a[0] || 1); };
+      let vmax = 0; for (let i = 0; i <= K; i++) vmax = Math.max(vmax, Math.abs(vz(i)));
+      const VY = i => mid - (vz(i) / vmax) * (B.h / 2 - 4);
+      ctx.beginPath(); ctx.moveTo(tr[0][0], mid); for (let i = 0; i <= n; i++) ctx.lineTo(tr[i][0], VY(i)); ctx.lineTo(tr[n][0], mid); ctx.closePath(); ctx.fillStyle = "rgba(196,84,74,.14)"; ctx.fill();
+      ctx.strokeStyle = C.red; ctx.lineWidth = 1.8; ctx.beginPath(); for (let i = 0; i <= n; i++) i ? ctx.lineTo(tr[i][0], VY(i)) : ctx.moveTo(tr[i][0], VY(i)); ctx.stroke();
+      label(ctx, narrow ? "Vertical motion (↓ drawn into farm)" : "Vertical motion (↑ up, ↓ down)", B.x, B.y - 10, C.red);
+      label(ctx, "↑", B.x - 6, B.y + 8, C.dim, "right"); label(ctx, "↓", B.x - 6, B.y + B.h, C.dim, "right");
+      label(ctx, "Distance downstream →", B.x + B.w, B.y + B.h + 16, C.dim, "right");
+      if (f > 0.5) { const e = tr[Math.round((0.36 - u0) / (u1 - u0) * K)]; label(ctx, "Entrained", e[0] + 8, ZY(trackA(0.36)) + 4, C.text); }
+      if (f > 0.97) { const e = tr[Math.round((0.83 - u0) / (u1 - u0) * K)]; label(ctx, "Leaves", e[0] - 4, ZY(trackA(0.83)) - 12, C.text, "right"); }
     },
   };
 
