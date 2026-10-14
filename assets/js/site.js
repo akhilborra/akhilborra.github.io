@@ -22,6 +22,9 @@
     items.forEach(el => io.observe(el));
   }
 
+  // Autoplaying videos: under reduced motion, don't autoplay — show controls instead
+  if (reduce) document.querySelectorAll("video[autoplay]").forEach(v => { v.removeAttribute("autoplay"); v.pause(); v.controls = true; });
+
   // 3D models: honour reduced motion, wire up pause buttons and the hero lock toggle
   document.querySelectorAll("model-viewer").forEach(mv => {
     if (reduce) { mv.removeAttribute("autoplay"); mv.removeAttribute("auto-rotate"); }

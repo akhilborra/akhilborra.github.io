@@ -33,11 +33,24 @@
     for (let k = 0; k < 3; k++) { const a = t * 2.2 + k * 2.094; ctx.beginPath(); ctx.moveTo(x, gy - H); ctx.lineTo(x + Math.cos(a) * H * 0.42, gy - H + Math.sin(a) * H * 0.42); ctx.stroke(); }
     dot(ctx, x, gy - H, 2.2 * s, "#ecebe5");
   }
-  function balloon(ctx, x, y, col, r = 7) {
-    ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + r); ctx.lineTo(x, y + r + 9); ctx.stroke();
-    ctx.fillStyle = "#d9d8d2"; ctx.fillRect(x - 2.5, y + r + 9, 5, 4);
-    const g = ctx.createRadialGradient(x - r * .35, y - r * .35, 1, x, y, r); g.addColorStop(0, "#fff"); g.addColorStop(.25, col); g.addColorStop(1, col);
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = g; ctx.fill();
+  // One tracer as built: four red balloons on a light cross-shaped frame around a central white sensor,
+  // seen slightly from the side so the ring reads as a tilted ellipse. (x, y) is the central sensor.
+  function tracer(ctx, x, y, t, s = 1) {
+    const R = 14.5 * s, r = 5.8 * s, rot = 0.4 + 0.3 * Math.sin(t * 0.45);
+    const pts = [0, 1, 2, 3].map(k => {
+      const a = rot + k * Math.PI / 2, px = x + Math.cos(a) * R;
+      return { x: px, y: y + 3 * s + Math.sin(a) * R * 0.5 + (px - x) * 0.18, z: Math.sin(a) };
+    }).sort((p, q) => p.z - q.z);
+    const arm = p => { ctx.strokeStyle = "rgba(236,235,229,.75)"; ctx.lineWidth = 1.2 * s; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+    const ball = p => {
+      const back = p.z < 0, g = ctx.createRadialGradient(p.x - r * .35, p.y - r * .4, 0.5, p.x, p.y, r);
+      g.addColorStop(0, back ? "#e98a80" : "#ffd2cc"); g.addColorStop(.3, back ? "#b23a31" : "#d9453a"); g.addColorStop(1, back ? "#7d241e" : "#9e2b23");
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fillStyle = g; ctx.fill();
+    };
+    const hub = () => { dot(ctx, x, y, 3.4 * s, "#ecebe5"); dot(ctx, x, y, 1.3 * s, "#59605b"); };
+    pts.forEach(p => { if (p.z < 0) { arm(p); ball(p); } });
+    hub();
+    pts.forEach(p => { if (p.z >= 0) { arm(p); ball(p); } });
   }
   function drone(ctx, x, y, t) {
     ctx.strokeStyle = "#d9d8d2"; ctx.lineWidth = 2;
@@ -47,14 +60,15 @@
   }
 
   const steps = {
-    // 01 heated-wire release: the drone carries four balloons on a payload, climbs to release height
-    // upwind of the turbines, heats the burn wires until the strings part, and the balloons drift downwind.
+    // 01 heated-wire release: the drone carries one tracer (four balloons around a central sensor) on strings,
+    // climbs to release height upwind of the turbines, heats the burn wires until the strings part, and the
+    // tracer drifts downwind with nothing attached above it.
     release(ctx, w, h, t) {
       const gy = h * 0.82; backdrop(ctx, w, h, gy);
       turbine(ctx, w * 0.70, gy, h * 0.42, t); turbine(ctx, w * 0.86, gy, h * 0.42, t + 1);
       const P = 8, ph = (t % P) / P;
       const ease = f => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
-      const x0 = w * 0.16, yRel = gy - h * 0.56, yLow = gy - 62, r = 6;
+      const x0 = w * 0.16, yRel = gy - h * 0.6, yLow = gy - 84, L = 44;
       const sway = 3 * Math.sin(t * 1.3);
       // drone altitude: climb, hover for heating/release, descend; fade in/out so the cycle loops cleanly
       let dy = ph < 0.3 ? yLow + (yRel - yLow) * ease(ph / 0.3) : ph < 0.7 ? yRel : yRel + (yLow - yRel) * ease(Math.min(1, (ph - 0.7) / 0.25));
@@ -62,36 +76,29 @@
       const droneA = ph < 0.06 ? ph / 0.06 : ph > 0.9 ? Math.max(0, (1 - ph) / 0.1) : 1;
       const TC = 0.48, cut = ph >= TC;
       const heat = ph < 0.3 ? 0 : ph < TC ? (ph - 0.3) / (TC - 0.3) : Math.max(0, 1 - (ph - TC) / 0.14);
-      const att = [-10.5, -3.5, 3.5, 10.5], off = [-21, -7, 7, 21], len = [20, 28, 28, 20], cols = [C.A, C.B, C.Cc, C.brass];
+      const att = [-9, -3, 3, 9];
       // release-height marker
       ctx.strokeStyle = "rgba(201,168,107,.45)"; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
       ctx.beginPath(); ctx.moveTo(x0 + 30, yRel + 10); ctx.lineTo(w * 0.6, yRel + 10); ctx.stroke(); ctx.setLineDash([]);
       label(ctx, "Release height", x0 + 36, yRel + 4, C.brass);
-      // balloons
       if (!cut) {
+        // tracer hangs from long thin strings that converge from the payload to the central sensor
         ctx.globalAlpha = droneA;
-        for (let i = 0; i < 4; i++) {
-          const ax = x0 + att[i], ay = dy + 10, bx = x0 + off[i], by = ay + len[i] + r;
-          ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by - r); ctx.stroke();
-          balloon(ctx, bx, by, cols[i], r);
-        }
+        const hx = x0 + 1.5 * Math.sin(t * 1.1), hy = dy + 10 + L;
+        ctx.strokeStyle = "rgba(236,235,229,.45)"; ctx.lineWidth = 0.8; ctx.beginPath();
+        att.forEach(a => { ctx.moveTo(x0 + a, dy + 10); ctx.lineTo(hx, hy - 3); }); ctx.stroke();
+        tracer(ctx, hx, hy, t);
         ctx.globalAlpha = 1;
       } else {
-        const f = Math.min(1, (ph - TC) / 0.5);
-        const fa = f > 0.8 ? Math.max(0, (1 - f) / 0.2) : 1;
-        if (fa > 0) for (let i = 0; i < 4; i++) {
-          const sx = x0 + off[i], sy = yRel + 10 + len[i] + r;
-          const bx = sx + Math.pow(f, 1.15) * w * (0.9 + 0.05 * i), by = sy + (i - 1.5) * f * h * 0.06 + 5 * f * Math.sin(f * 10 + i * 1.7);
+        // strings are gone; the tracer drifts downwind on its own
+        const f = Math.min(1, (ph - TC) / 0.5), fa = f > 0.8 ? Math.max(0, (1 - f) / 0.2) : 1;
+        if (fa > 0) {
+          const sx = x0, sy = yRel + 10 + L;
           ctx.globalAlpha = fa;
-          // the cut string trails above the balloon, leaning upwind
-          ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, by - r); ctx.lineTo(bx - 4 - 6 * Math.min(1, f * 4), by - r - (len[i] - 6)); ctx.stroke();
-          balloon(ctx, bx, by, cols[i], r);
+          tracer(ctx, sx + Math.pow(f, 1.15) * w * 0.95, sy - f * h * 0.05 + 5 * f * Math.sin(f * 10), t);
+          ctx.globalAlpha = 1;
         }
-        ctx.globalAlpha = 1;
-        // stubs left hanging from the payload, fading
-        const sa = Math.max(0, 1 - (ph - TC) / 0.2) * droneA;
-        if (sa > 0) { ctx.strokeStyle = `rgba(236,235,229,${0.38 * sa})`; ctx.beginPath(); att.forEach(a => { ctx.moveTo(x0 + a, dy + 10); ctx.lineTo(x0 + a, dy + 15); }); ctx.stroke(); }
-        // sparks as the strings part
+        // sparks at the burn wires as the strings part
         if (ph < TC + 0.08) {
           const s = (ph - TC) / 0.08;
           att.forEach((a, i) => { for (let k = 0; k < 3; k++) { const an = 0.6 + k * 0.95 + i; dot(ctx, x0 + a + Math.cos(an) * s * 10, dy + 11 + Math.sin(an) * s * 8 + s * s * 6, 1.3, `rgba(255,190,110,${1 - s})`); } });
@@ -120,7 +127,7 @@
       label(ctx, "Wind →", w - 14, 22, C.dim, "right");
     },
 
-    // 02 balloon follows the flow through a turbine wake while the radiosonde samples
+    // 02 the tracer follows the flow through a turbine wake while the radiosonde samples
     drift(ctx, w, h, t) {
       const gy = h * 0.84; backdrop(ctx, w, h, gy);
       const tx = w * 0.36, H = h * 0.38, hub = gy - H;
@@ -138,20 +145,20 @@
       ctx.strokeStyle = C.B; ctx.lineWidth = 2; ctx.beginPath(); pts.slice(0, j + 1).forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
       // sampling pings once per "second"
       for (let i = 0; i <= j; i += 8) dot(ctx, pts[i][0], pts[i][1], 2, C.brass);
-      const ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.beginPath(); ctx.arc(bx, by, 6 + ring * 18, 0, 7); ctx.stroke();
-      balloon(ctx, bx, by, C.B);
+      const ring = (t * 1.5) % 1; ctx.strokeStyle = `rgba(201,168,107,${1 - ring})`; ctx.beginPath(); ctx.arc(bx, by, 16 + ring * 18, 0, 7); ctx.stroke();
+      tracer(ctx, bx, by, t, 0.85);
       label(ctx, w < 480 ? "Samples: GPS · p · T · humidity" : "Samples: GPS position · pressure · temperature · humidity", 14, 22, C.brass);
     },
 
     // 03 telemetry packets travel to a ground receiver
     telemetry(ctx, w, h, t) {
       const gy = h * 0.84; backdrop(ctx, w, h, gy);
-      const bx = w * 0.30 + 14 * Math.sin(t * 0.6), by = h * 0.26 + 6 * Math.sin(t * 0.9);
+      const bx = w * 0.30 + 14 * Math.sin(t * 0.6), by = h * 0.15 + 5 * Math.sin(t * 0.9);
       const rx = w * 0.80, ry = gy - 6;
       ctx.strokeStyle = "rgba(201,168,107,.25)"; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(rx, ry - 34); ctx.stroke(); ctx.setLineDash([]);
       for (let k = 0; k < 3; k++) { const r = ((t * 0.8 + k / 3) % 1); ctx.strokeStyle = `rgba(201,168,107,${0.6 * (1 - r)})`; ctx.beginPath(); ctx.arc(bx, by, 10 + r * 40, -0.6, 0.9); ctx.stroke(); }
       for (let k = 0; k < 4; k++) { const f = ((t * 0.45 + k / 4) % 1); dot(ctx, bx + (rx - bx) * f, by + (ry - 34 - by) * f, 2.6, C.brass); }
-      balloon(ctx, bx, by, C.A);
+      tracer(ctx, bx, by, t, 0.95);
       // receiver: mast with antenna + laptop
       ctx.strokeStyle = "#d9d8d2"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx, ry - 34); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(rx - 10, ry - 34); ctx.lineTo(rx + 10, ry - 34); ctx.moveTo(rx - 6, ry - 28); ctx.lineTo(rx + 6, ry - 28); ctx.stroke();

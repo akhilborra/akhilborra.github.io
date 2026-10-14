@@ -373,3 +373,4 @@ figure.lpt-tracks .lpt-stage { position: relative; }
 figure.lpt-tracks figcaption { margin-top: 10px; font-size: .86rem; color: var(--ink-3); }
 @media (min-width: 1100px) { .prose > figure.lpt-tracks { margin-left: -120px; margin-right: -120px; } }
 @media (max-width: 600px) { figure.lpt-tracks canvas { aspect-ratio: 4 / 5; } }
+figure.fig video { width: 100%; display: block; border-radius: 6px; background: #000; aspect-ratio: 16 / 9; }
