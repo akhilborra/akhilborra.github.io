@@ -50,19 +50,23 @@
   async function load() {
     const res = await fetch(src);
     if (!res.ok) throw new Error(res.status);
+    // content-length is only a progress estimate: servers like GitHub Pages gzip the file,
+    // so it reports the compressed size while the stream delivers the larger decoded bytes
     const total = +res.headers.get("content-length") || 0;
     let buf;
     if (res.body && total) {
-      const reader = res.body.getReader(), out = new Uint8Array(total);
+      const reader = res.body.getReader(), chunks = [];
       let got = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        if (got + value.length > out.length) { buf = null; break; }
-        out.set(value, got); got += value.length;
-        progress = got / total; requestDraw();
+        chunks.push(value); got += value.length;
+        progress = Math.min(0.99, got / total); requestDraw();
       }
-      buf = out.buffer.slice(0, got);
+      const out = new Uint8Array(got);
+      let off = 0;
+      for (const c of chunks) { out.set(c, off); off += c.length; }
+      buf = out.buffer;
     } else buf = await res.arrayBuffer();
     parse(buf);
   }
