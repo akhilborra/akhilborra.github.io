@@ -335,6 +335,7 @@ async function boot() {
     el.toggle.querySelector('span').textContent = inside ? 'Show outside' : 'Show inside';
     const v = inside ? VIEW.in() : VIEW.out();
     if (instant) { camera.position.copy(v.p); controls.target.copy(v.t); setDoor(inside ? 1 : 0); return; }
+    flying = true; resize(); last = 0;
     tween = { t0: performance.now(), dur: reduced ? 1 : 1500, p0: camera.position.clone(), t0v: controls.target.clone(), p1: v.p, t1: v.t, d0: doorT, d1: inside ? 1 : 0 };
     kick();
   }
@@ -352,10 +353,10 @@ async function boot() {
   controls.addEventListener('change', () => { controlsMoved = true; kick(); });
 
   /* ---------- sizing (resolution capped at 1.25x, lowered automatically on slow devices) ---------- */
-  let resScale = 1, slowFrames = 0;
+  let resScale = 1, slowFrames = 0, flying = false;
   function resize() {
     const w = Math.max(10, stage.clientWidth), h = Math.max(10, stage.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25) * resScale);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25) * resScale * (flying ? 0.7 : 1));
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix(); kick();
   }
@@ -375,12 +376,12 @@ async function boot() {
     controlsMoved = false;
     const dt = last ? Math.min(0.05, Math.max(0, (now - last) / 1000)) : 0; last = now;
     // adaptive resolution: if frames keep taking > 45 ms, render fewer pixels (down to 0.6x)
-    if (dt > 0.045) { if (++slowFrames > 20 && resScale > 0.6) { resScale = Math.max(0.6, resScale - 0.2); slowFrames = 0; resize(); } } else slowFrames = Math.max(0, slowFrames - 1);
+    if (!tween && dt > 0.045) { if (++slowFrames > 20 && resScale > 0.6) { resScale = Math.max(0.6, resScale - 0.2); slowFrames = 0; resize(); } } else slowFrames = Math.max(0, slowFrames - 1);
     if (tween) {
       const f = Math.max(0, Math.min(1, (performance.now() - tween.t0) / tween.dur)), e = ease(f);
       camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0v, tween.t1, e);
       setDoor(tween.d0 + (tween.d1 - tween.d0) * e);
-      if (f >= 1) tween = null;
+      if (f >= 1) { tween = null; flying = false; resize(); }
     }
     const m = motion();
     if (m) {
@@ -396,6 +397,10 @@ async function boot() {
   }
   rpm = applyState();
   resize();
+  // compile all shaders now (with the inside visible too), so the first fly-in doesn't stall
+  setDoor(1); pGeo.setDrawRange(0, NP_MAX); renderer.compile(scene, camera);
+  go(true, true); renderer.render(scene, camera);
+  rpm = applyState();
   go(false, true);
   stage.classList.add('is-ready');
   const msg = root.querySelector('.vx-msg'); if (msg) msg.hidden = true;
