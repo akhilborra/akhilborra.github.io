@@ -11,7 +11,8 @@ smooth/{x,y,z} [m], smooth/{vx,vy,vz} [m/s], points/frame, indexed per track by
 trajectories/{start,length,file}; files/fps per recording (300-930 Hz, varies by run).
 Frame: +x streamwise, +y lateral, z vertical, positions copied unchanged from the .mat.
 
-What is kept: ALL tracks. Each track is decimated along its length to every k-th sample,
+What is kept: every track of every recording with at least MIN_TRACKS tracks (recordings
+with only a handful of tracks are left out). Each track is decimated along its length to every k-th sample,
 k = round(fps / TARGET_HZ), so every run is stored at ~40 Hz. Positions are quantized to
 int16 at Q m around the volume centre; speed |v| (from the smoothed velocities) to uint8
 at 0.05 m/s. No resampling, interpolation or extra smoothing.
@@ -31,6 +32,7 @@ import h5py
 SRC = os.path.expanduser('~/Documents/Bubble Project/Winterthur March 2026/vortex_fitting/trajectories.h5')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'data', 'lpt-tracks.bin')
 TARGET_HZ = 40.0
+MIN_TRACKS = 500    # skip recordings with fewer tracks than this
 Q = 0.0005          # m per position step
 SPEED_Q = 0.05      # m/s per speed step
 
@@ -51,6 +53,9 @@ def main(src=SRC, out=OUT):
     runs, table, pts, sp = [], [], [], []
     for r in range(len(fps)):
         idx = np.where(tfile == r)[0]
+        if len(idx) < MIN_TRACKS:
+            print(f'run {dsnum[r]:>2}: {len(idx)} tracks, skipped (< {MIN_TRACKS})')
+            continue
         k = max(1, int(round(fps[r] / TARGET_HZ)))
         f0 = min(frame[start[i]] for i in idx)
         f1 = max(frame[start[i] + length[i] - 1] for i in idx)
