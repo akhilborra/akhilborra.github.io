@@ -125,22 +125,22 @@
     ctx.fillStyle = C.cam; ctx.fillRect(s.x - 5, s.y - 4, 10, 8);
     label(ctx, "Cam " + (i + 1), s.x, s.y + 18, C.dim, "center");
   }
-  // upstream rotor; one blade passes the bottom (where the vortex line sits) every T,
+  // upwind turbine upstream of the volume (the volume sits in its wake); one blade passes the bottom (where the vortex line sits) every T,
   // so it sheds the vortex that is then advected into the volume
   const XT = XMIN - 5, RR = 4.6;
   function drawTurbine(ctx, view, w, h, t, k) {
     ctx.strokeStyle = C.turbine; ctx.lineWidth = 2.2;
     seg(ctx, view, [XT, 0, GROUND], [XT, 0, RR - 0.3], w, h, k);
-    ctx.lineWidth = 3; seg(ctx, view, [XT - 1.1, 0, RR], [XT + 0.5, 0, RR], w, h, k);
+    ctx.lineWidth = 3; seg(ctx, view, [XT - 0.5, 0, RR], [XT + 1.1, 0, RR], w, h, k);   // nacelle points downstream
     const a0 = -Math.PI / 2 + (2 * Math.PI / 3) * ((t + (XMIN - XT) / U) / T);
     ctx.fillStyle = C.turbine;
     for (let b = 0; b < 3; b++) {
       const a = a0 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
-      const pt = (r, off) => [XT + 0.5, r * ca - off * sa, RR + r * sa + off * ca];
+      const pt = (r, off) => [XT - 0.5, r * ca - off * sa, RR + r * sa + off * ca];   // upwind rotor
       const poly = [pt(0.3, 0.32), pt(RR, 0.08), pt(RR, -0.04), pt(0.3, -0.18)].map(P => scr(view, P, w, h, k));
       ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); ctx.fill();
     }
-    const c = scr(view, [XT + 0.55, 0, RR], w, h, k);
+    const c = scr(view, [XT - 0.55, 0, RR], w, h, k);
     dotAt(ctx, c.x, c.y, 3, C.cam);
   }
   function drawVortexLine(ctx, view, w, h, t, k, color, width) {
@@ -220,7 +220,6 @@
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       const k = 1.9, view = orbit(-Math.PI / 2 + 0.36, 0.22, 13.5, [0, 0, 0]);
       drawBox(ctx, view, w, h, k);
-      drawVortexLine(ctx, view, w, h, t, k, C.coreDim, 2);
       const STEPS = 90, DT = 0.05;
       for (const p of parts) {
         let last = null;
@@ -235,8 +234,6 @@
         dotAt(ctx, last.x, last.y, 2, C.bubble);
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
-      const vx = scr(view, [coreX(t), -3, 0], w, h, k);
-      label(ctx, "Tip vortex", vx.x + 8, vx.y + 4, C.core);
     },
 
     // 04 the same instant in two views: 3D (lab frame) and along the vortex axis (moving with the core)
