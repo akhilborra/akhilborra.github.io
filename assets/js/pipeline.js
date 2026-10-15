@@ -168,6 +168,16 @@
   // steps 02 and 03 share one wide view: rotor, helix and the volume in its wake
   const K_WIDE = 1.75, VIEW_WIDE = orbit(-Math.PI / 2 + 0.42, 0.24, 29, [-2.6, 0, 1.0]);
 
+  // fixed legend for the helix, top right
+  // (drops to a second line when the panel title leaves no room)
+  function vortexKey(ctx, w, title) {
+    ctx.font = FONT;
+    const tw = ctx.measureText("TIP VORTEX").width, y = 14 + ctx.measureText(title.toUpperCase()).width + 24 + tw + 26 > w - 14 ? 40 : 22;
+    ctx.strokeStyle = C.core; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(w - 14 - tw - 26, y - 4); ctx.lineTo(w - 14 - tw - 8, y - 4); ctx.stroke();
+    label(ctx, "Tip vortex", w - 14, y, C.core, "right");
+  }
+
   // ---------- step renderers ----------
   const steps = {
     // 01 four camera views
@@ -230,6 +240,7 @@
       const tb = scr(view, [XT, 0, GROUND], w, h, k);
       label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
       label(ctx, "4 lines of sight → 1 point, every frame", 14, 22, C.brass);
+      vortexKey(ctx, w, "4 lines of sight → 1 point, every frame");
       label(ctx, `x ${P.x.toFixed(2)}  y ${P.y.toFixed(2)}  z ${P.z.toFixed(2)}`, 14, h - 14, C.text);
     },
 
@@ -256,10 +267,7 @@
         dotAt(ctx, last.x, last.y, 1.6, C.bubble);
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
-      const cx = [...Array(NV).keys()].map(c => coreX(t, c)).reduce((a, b) => Math.abs(b) < Math.abs(a) ? b : a);
-      // label a point on the helix just above the volume, clear of the tracks
-      const vx = scr(view, [cx - HS * 1.1, RR * Math.sin(1.1), RR * (1 - Math.cos(1.1))], w, h, k);
-      label(ctx, "Tip vortex", vx.x + 8, vx.y - 6, C.core);
+      vortexKey(ctx, w, "Lagrangian tracks");
       const tb = scr(view, [XT, 0, GROUND], w, h, k);
       label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
     },
