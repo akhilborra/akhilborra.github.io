@@ -47,8 +47,8 @@
 .vx-ctl input[type=range]:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 4px; }
 .vx-ctl small { display: block; color: var(--ink-3); font-size: .74rem; margin-top: 1px; }
 
-.vx-read { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); }
-@media (max-width: 700px) { .vx-read { grid-template-columns: repeat(2, 1fr); } .vx-read > div:last-child { grid-column: span 2; } }
+.vx-read { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); }
+@media (max-width: 700px) { .vx-read { grid-template-columns: repeat(2, 1fr); } }
 .vx-read dt { font: 600 10px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 .vx-read dd { margin: 3px 0 0; font: 800 1.25rem/1.1 var(--display); font-stretch: 72%; text-transform: uppercase; font-variant-numeric: tabular-nums; color: var(--ink); }
 .vx-note { margin: 12px 0 0; font-size: .74rem; color: var(--ink-3); line-height: 1.5; }

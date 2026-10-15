@@ -267,7 +267,7 @@ async function boot() {
   const ROT_SLOW = 1 / 20, FLOW_SLOW = 0.35;
   const el = {
     P: $('#vx-p'), U: $('#vx-u'), tsr: $('#vx-tsr'), pitch: $('#vx-pitch'),
-    oP: $('#vx-o-p'), oU: $('#vx-o-u'), oRe: $('#vx-o-re'), oRpm: $('#vx-o-rpm'), oPitch: $('#vx-o-pitch'),
+    oP: $('#vx-o-p'), oU: $('#vx-o-u'), oRe: $('#vx-o-re'), oReD: $('#vx-o-red'), oRpm: $('#vx-o-rpm'), oPitch: $('#vx-o-pitch'),
     vP: $('#vx-v-p'), vU: $('#vx-v-u'), vTsr: $('#vx-v-tsr'), vPitch: $('#vx-v-pitch'),
     needle: $('#vx-needle'), gaugeVal: $('#vx-gauge-val'), toggle: $('#vx-toggle'),
   };
@@ -289,6 +289,7 @@ async function boot() {
     el.oP.textContent = `${st.P.toFixed(1)} bar`;
     el.oU.textContent = `${st.U.toFixed(1)} m/s`;
     el.oRe.textContent = fmtRe(re);
+    el.oReD.textContent = fmtRe((rho * st.U * 2 * R_ROTOR) / SF6.mu);   // diameter Reynolds number, D = 0.6 m
     el.oRpm.textContent = `${Math.round(rpm).toLocaleString('en-US')} rpm`;
     el.oPitch.textContent = `${signed(st.pitch)}°`;
     el.gaugeVal.textContent = st.P.toFixed(1);

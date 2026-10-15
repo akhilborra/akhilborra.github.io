@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css?v=10">
-  <link rel="stylesheet" href="../assets/css/vdtt.css?v=1">
+  <link rel="stylesheet" href="../assets/css/vdtt.css?v=2">
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-  <script type="module" src="../assets/js/vdtt-explorer.js?v=5"></script>
+  <script type="module" src="../assets/js/vdtt-explorer.js?v=6"></script>
   <script defer src="../assets/js/site.js?v=7"></script>
   <script defer src="../assets/js/rotor-schematic.js?v=1"></script>
 </head>
@@ -98,7 +98,7 @@
         <div class="vx-panel">
           <div class="vx-sliders">
             <div class="vx-ctl"><label for="vx-p">Gas pressure <output id="vx-v-p">5.0 bar</output></label><input id="vx-p" type="range" min="1" max="15" step="0.1" value="5"><small>SF6, 1 to 15 bar, about 20 °C</small></div>
-            <div class="vx-ctl"><label for="vx-u">Wind speed <output id="vx-v-u">3.0 m/s</output></label><input id="vx-u" type="range" min="0.8" max="4.5" step="0.1" value="3"><small>Measured runs span about 0.8 to 4.5 m/s</small></div>
+            <div class="vx-ctl"><label for="vx-u">Wind speed <output id="vx-v-u">3.0 m/s</output></label><input id="vx-u" type="range" min="0.8" max="5.5" step="0.1" value="3"><small>0.8 to 5.5 m/s</small></div>
             <div class="vx-ctl"><label for="vx-tsr">Tip-speed ratio <output id="vx-v-tsr">6.0</output></label><input id="vx-tsr" type="range" min="2" max="10" step="0.1" value="6"><small>rotor speed = TSR · U / R</small></div>
             <div class="vx-ctl"><label for="vx-pitch">Blade pitch <output id="vx-v-pitch">0.0°</output></label><input id="vx-pitch" type="range" min="-5" max="25" step="0.5" value="0"><small>all three blades together</small></div>
           </div>
@@ -106,10 +106,11 @@
             <div><dt>Pressure</dt><dd id="vx-o-p">5.0 bar</dd></div>
             <div><dt>Wind speed</dt><dd id="vx-o-u">3.0 m/s</dd></div>
             <div><dt>Chord Re</dt><dd id="vx-o-re">0</dd></div>
+            <div><dt>Diameter Re</dt><dd id="vx-o-red">0</dd></div>
             <div><dt>Rotor speed</dt><dd id="vx-o-rpm">0 rpm</dd></div>
             <div><dt>Pitch</dt><dd id="vx-o-pitch">0.0°</dd></div>
           </dl>
-          <p class="vx-note">Chord Reynolds number Re<sub>c</sub> = ρ U<sub>rel</sub> c / μ, with the blade-relative speed U<sub>rel</sub> = U √(1 + (λ · 0.72)²) and c = 0.039 m (chord at 0.72 R) and SF6 at about 20 °C (ideal-gas density with a compressibility correction, μ ≈ 1.5 × 10⁻⁵ Pa·s). Approximate. The rotor and flow are shown in slow motion; the rotor speed readout is the real value.</p>
+          <p class="vx-note">Diameter Reynolds number Re<sub>D</sub> = ρ U D / μ with the rotor diameter D = 0.6 m. Chord Reynolds number Re<sub>c</sub> = ρ U<sub>rel</sub> c / μ, with the blade-relative speed U<sub>rel</sub> = U √(1 + (λ · 0.72)²) and c = 0.039 m (chord at 0.72 R) and SF6 at about 20 °C (ideal-gas density with a compressibility correction, μ ≈ 1.5 × 10⁻⁵ Pa·s). Approximate. The rotor and flow are shown in slow motion; the rotor speed readout is the real value.</p>
         </div>
         <figcaption><span class="badge">Interactive 3D</span> Schematic model, not CAD. The tunnel geometry is approximated from the published facility description (18.2 m × 5.3 m closed loop, two 1.84 m diameter cylinders, octagonal measurement section about 1.5 m × 1.3 m) and from photographs; fan and heat exchanger are not shown and the turbine's position in the section is assumed. The turbine is to scale (D = 0.6 m, hub height 0.52 m from my OpenFAST model, blade chord and twist from the same model) while the particles are illustrative: more of them at higher pressure. No measured data is shown.</figcaption>
       </figure>
