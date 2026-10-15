@@ -16,14 +16,25 @@
   const FONT = '600 11px Inter, system-ui, sans-serif';
 
   // ---------- synthetic flow ----------
-  const GAMMA = 12, RC = 0.8, U = 1.1, XMIN = -4.5, XMAX = 4.5, L = XMAX - XMIN, T = L / U;
-  const GROUND = -6;
-  // rotor: hub at height RR, so the blade tips sweep through the volume centre (y = z = 0).
-  // NV helix turns cross the volume at a time; a blade passes the bottom every T / NV.
-  const XT = XMIN - 5, XR = XT - 0.5, RR = 4.6, NV = 2;
-  const OMR = NV * (2 * Math.PI / 3) / T, HS = U / OMR;     // rotor speed, helix pitch / 2π
-  // the core near the bottom of the helix: x shift and lift as a function of spanwise y
-  const coreOff = y => { const d = Math.asin(Math.max(-1, Math.min(1, y / RR))); return [-HS * d, RR * (1 - Math.cos(d))]; };
+  const GAMMA = 12, RC = 0.8, U = 1.1, XMIN = -3.4, XMAX = 3.4, L = XMAX - XMIN, T = L / U;
+  // Turbine placement follows the field geometry (4d-ptv settings: tower base (-7.07, -4.52) m,
+  // hub 18 m up, 0.98 m overhang, R = 6.4 m; volume centre (-0.19, -0.14, 11.14) m, ground at
+  // -1.62 m): the rotor is 7.9 m upstream of the volume centre, and the volume sits at the
+  // lower blade tip, offset to the right of the hub when seen from behind the turbine (+y).
+  // Drawn at SC units per metre, with the hub placed so the tip circle passes the volume centre.
+  const RR = 4.6, SC = RR / 6.4;
+  const GROUND = -12.76 * SC;
+  const HDIR = Math.atan2(5.24, -4.38);                       // direction volume centre -> hub (y, z)
+  const HY = RR * Math.cos(HDIR), HZ = RR * Math.sin(HDIR);  // hub, relative to the volume centre
+  const XR = -7.86 * SC, XT = XR + 0.98 * SC;                // rotor apex, tower axis
+  const ASTAR = HDIR - Math.PI;                              // blade angle at which the tip is at the centre
+  // NV helix turns cross the volume at a time; a blade passes the volume every T / NV.
+  const NV = 2, OMR = NV * (2 * Math.PI / 3) / T, HS = U / OMR;   // rotor speed, helix pitch / 2π
+  // a point on the tip circle, arc-length s from the volume centre: [x shift, y, z, normal y, normal z]
+  const coreAt = s => {
+    const d = s / RR, a = ASTAR + d, ny = Math.cos(a), nz = Math.sin(a);
+    return [-HS * d, HY + RR * ny, HZ + RR * nz, ny, nz];
+  };
   const omega = r => GAMMA / (2 * Math.PI * r * r) * (1 - Math.exp(-r * r / (RC * RC)));
   let seed = 11;
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -47,9 +58,9 @@
   const coreX = (t, c = 0) => XMIN + ((U * t + c * L / NV) % L + L) % L;
   function pos(p, t) {
     const [ex, ey, ez] = wander(p, t);
-    if (p.near) {
-      const th = p.th0 + omega(p.r) * t, [ox, oz] = coreOff(p.y);
-      return { x: coreX(t, p.core) + ox + p.r * Math.cos(th) + ex, y: p.y + ey, z: oz + p.r * Math.sin(th) + ez,
+    if (p.near) {   // p.y is the position along the core; orbit in the plane of x and the tip-circle normal
+      const th = p.th0 + omega(p.r) * t, [ox, cy, cz, ny, nz] = coreAt(p.y), c = Math.cos(th), sn = Math.sin(th);
+      return { x: coreX(t, p.core) + ox + p.r * c + ex, y: cy + p.r * sn * ny + ey, z: cz + p.r * sn * nz + ez,
                wraps: Math.floor((U * t + p.core * L / NV) / L) };
     }
     const x = XMIN + U * t + p.dx, wraps = Math.floor((x - XMIN) / L);
@@ -134,20 +145,20 @@
   }
   // upwind turbine upstream of the volume (the volume sits in its wake); its blade tips shed the
   // helix, phased so each turn reaches the volume exactly where the bubbles' cores are
-  const bladeAngle = t => -Math.PI / 2 + OMR * (t + (XMIN - XR) / U);
+  const bladeAngle = t => ASTAR + OMR * (t + (XMIN - XR) / U);
   function drawTurbine(ctx, view, w, h, t, k) {
     ctx.strokeStyle = C.turbine; ctx.lineWidth = 2.2;
-    seg(ctx, view, [XT, 0, GROUND], [XT, 0, RR - 0.3], w, h, k);
-    ctx.lineWidth = 3; seg(ctx, view, [XT - 0.5, 0, RR], [XT + 1.1, 0, RR], w, h, k);   // nacelle points downstream
+    seg(ctx, view, [XT, HY, GROUND], [XT, HY, HZ - 0.3], w, h, k);
+    ctx.lineWidth = 3; seg(ctx, view, [XR, HY, HZ], [XT + 0.6, HY, HZ], w, h, k);   // nacelle points downstream
     const a0 = bladeAngle(t);
     ctx.fillStyle = C.turbine;
     for (let b = 0; b < 3; b++) {
       const a = a0 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
-      const pt = (r, off) => [XR, r * ca - off * sa, RR + r * sa + off * ca];   // upwind rotor
+      const pt = (r, off) => [XR, HY + r * ca - off * sa, HZ + r * sa + off * ca];   // upwind rotor
       const poly = [pt(0.3, 0.32), pt(RR, 0.08), pt(RR, -0.04), pt(0.3, -0.18)].map(P => scr(view, P, w, h, k));
       ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); ctx.fill();
     }
-    const c = scr(view, [XT - 0.55, 0, RR], w, h, k);
+    const c = scr(view, [XR - 0.05, HY, HZ], w, h, k);
     dotAt(ctx, c.x, c.y, 3, C.cam);
   }
   // the three tip-vortex helices, from the blade tips downstream to the end of the volume
@@ -158,7 +169,7 @@
       ctx.beginPath();
       for (let s = 0, i = 0; s <= age; s += age / 260, i++) {
         const a = bladeAngle(t - s) + b * 2 * Math.PI / 3;
-        const q = scr(view, [XR + U * s, RR * Math.cos(a), RR + RR * Math.sin(a)], w, h, k);
+        const q = scr(view, [XR + U * s, HY + RR * Math.cos(a), HZ + RR * Math.sin(a)], w, h, k);
         i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
       }
       ctx.stroke();
@@ -166,7 +177,8 @@
   }
 
   // steps 02 and 03 share one wide view: rotor, helix and the volume in its wake
-  const K_WIDE = 1.75, VIEW_WIDE = orbit(-Math.PI / 2 + 0.42, 0.24, 29, [-2.6, 0, 1.0]);
+  // seen from behind the turbine and a little to its left, so the volume reads as offset to the right
+  const K_WIDE = 1.75, VIEW_WIDE = orbit(-0.98, 0.2, 31, [-2.4, -1.2, -1.6]);
 
   // fixed legend for the helix, top right
   // (drops to a second line when the panel title leaves no room)
@@ -237,7 +249,7 @@
       ctx.strokeStyle = C.brass; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(S.x, S.y, 7 + 2.5 * Math.sin(t * 6), 0, 2 * Math.PI); ctx.stroke();
       dotAt(ctx, S.x, S.y, 3.2, C.brass);
-      const tb = scr(view, [XT, 0, GROUND], w, h, k);
+      const tb = scr(view, [XT, HY, GROUND], w, h, k);
       label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
       label(ctx, "4 lines of sight → 1 point, every frame", 14, 22, C.brass);
       vortexKey(ctx, w, "4 lines of sight → 1 point, every frame");
@@ -248,7 +260,7 @@
     track(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       // same viewing angle as step 02, a bit closer to the volume
-      const k = K_WIDE, view = orbit(-Math.PI / 2 + 0.42, 0.24, 21, [-1.8, 0, 0.6]);
+      const k = K_WIDE, view = orbit(-0.98, 0.2, 23, [-1.6, -0.6, -0.6]);
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
@@ -268,7 +280,7 @@
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
       vortexKey(ctx, w, "Lagrangian tracks");
-      const tb = scr(view, [XT, 0, GROUND], w, h, k);
+      const tb = scr(view, [XT, HY, GROUND], w, h, k);
       label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
     },
 

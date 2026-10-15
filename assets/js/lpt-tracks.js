@@ -2,20 +2,27 @@
 // Data: assets/data/lpt-tracks.bin, built from the processed tracks by tools/build_lpt_tracks.py
 // (all tracks, each decimated to ~40 Hz, positions in metres, colour = measured speed |v|).
 // The 18 recordings are overlaid on one clock, each starting at its own first frame, and play
-// at real time with fading tails. Drag to rotate; the view otherwise sways slowly about a side view.
+// with fading tails; one recording can be picked instead, and the speed changed (1x = real time).
+// The turbine is drawn from the processing settings (4d-ptv settings.json, same camera-plane frame
+// as the tracks). Drag to rotate; the view otherwise sways slowly about a view from behind.
 // Animates only while on screen; prefers-reduced-motion holds a still frame until Play is pressed.
 (() => {
   const fig = document.getElementById("lpt-tracks");
   if (!fig) return;
   const canvas = fig.querySelector("canvas");
   const btn = fig.querySelector(".lpt-play");
+  const runSel = fig.querySelector(".lpt-run");
+  const speedBtns = [...fig.querySelectorAll(".lpt-speed button")];
   const src = fig.dataset.src;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const C = {
     panel: "#171a18", grid: "rgba(236,235,229,.09)", text: "#a9aeaa", dim: "rgba(236,235,229,.38)",
-    ink: "#ecebe5", brass: "#c9a86b",
+    ink: "#ecebe5", brass: "#c9a86b", turbine: "rgba(236,235,229,.55)", ground: "rgba(236,235,229,.05)",
   };
+  // turbine in the camera-plane frame of the tracks [m] (4d-ptv settings.json "turbine" block):
+  // tower base at ground level, hub 18 m above it, 0.98 m overhang, rotor faces -x, R = 6.4 m
+  const TOWER = [-7.069, -4.5159, -1.62], HUB_H = 18, OVERHANG = 0.98, R_ROT = 6.4;
   const FONT = '600 11px Inter, system-ui, sans-serif';
   const TAIL = 0.45;                 // s of history drawn behind each bubble
   const NA = 5, ALPHA = [0.95, 0.62, 0.4, 0.24, 0.11];
@@ -85,18 +92,27 @@
     let i = 0, p = 0, dur = 0;
     for (const r of h.runs) {
       dur = Math.max(dur, r.duration);
+      r.first = i; r.last = i + r.tracks;
       for (let k = 0; k < r.tracks; k++, i++) {
         t0[i] = tab[2 * i] / r.fps; n[i] = tab[2 * i + 1]; dt[i] = r.dt; off[i] = p;
         t1[i] = t0[i] + (n[i] - 1) * r.dt; p += n[i];
       }
     }
     const lo = h.box[0].map((v, k) => v - h.origin[k]), hi = h.box[1].map((v, k) => v - h.origin[k]);
+    const rel = (v, k) => v - h.origin[k];
+    const base = TOWER.map(rel), hub = [base[0] - OVERHANG, base[1], base[2] + HUB_H];
     D = { h, N, P, pos, spd, t0, t1, dt, off, n, loop: dur + TAIL, lo, hi,
-      ctr: lo.map((v, k) => (v + hi[k]) / 2), runs: h.runs.length };
+      ctr: lo.map((v, k) => (v + hi[k]) / 2), runs: h.runs.length, base, hub };
+    if (runSel) {
+      h.runs.forEach((r, k) => runSel.add(new Option(
+        `Recording ${r.dataset} · ${Math.round(r.fps)} Hz · ${r.duration.toFixed(1)} s · ${r.tracks.toLocaleString("en")} tracks`, k)));
+      runSel.disabled = false;
+    }
   }
 
   // ---------- camera ----------
-  const AZ0 = -Math.PI / 2 + 0.55, EL0 = 0.3, DIST = 19, K = 2.2;
+  // seen from behind the turbine and a little to its left, like the schematic above
+  const AZ0 = -0.98, EL0 = 0.2, DIST = 34, K = 2.2;
   let az = AZ0, el = EL0, dragAz = 0, dragEl = 0, cam = null;
   function setCam(target) {
     const ca = Math.cos(az), sa = Math.sin(az), ce = Math.cos(el), se = Math.sin(el);
@@ -151,6 +167,35 @@
     }
   }
 
+  function drawTurbine() {
+    const { base, hub } = D;
+    const P = v => proj(v[0], v[1], v[2]) ? [out[0], out[1]] : null;
+    // ground grid around the tower and under the volume
+    ctx.strokeStyle = C.ground; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = -12; x <= 6; x += 2) { const a = P([x, -10, base[2]]), b = P([x, 8, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
+    for (let y = -10; y <= 8; y += 2) { const a = P([-12, y, base[2]]), b = P([6, y, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
+    ctx.stroke();
+    ctx.strokeStyle = C.turbine; ctx.fillStyle = C.turbine;
+    const line = (a, b, w) => { const A = P(a), B = P(b); if (!A || !B) return; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(...A); ctx.lineTo(...B); ctx.stroke(); };
+    line(base, [base[0], base[1], hub[2] - 0.4], 2.2);                          // tower
+    line(hub, [base[0] + 0.9, base[1], hub[2]], 3.4);                            // nacelle
+    // rotor disc and three blades (fixed: the rotor phase is not part of the track data)
+    ctx.setLineDash([3, 5]); ctx.lineWidth = 1; ctx.beginPath();
+    for (let j = 0; j <= 72; j++) {
+      const a = 2 * Math.PI * j / 72, q = P([hub[0], hub[1] + R_ROT * Math.cos(a), hub[2] + R_ROT * Math.sin(a)]);
+      if (q) j ? ctx.lineTo(...q) : ctx.moveTo(...q);
+    }
+    ctx.strokeStyle = "rgba(236,235,229,.16)"; ctx.stroke(); ctx.setLineDash([]);
+    for (let b = 0; b < 3; b++) {
+      const a = Math.PI / 2 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
+      const pt = (r, o) => P([hub[0], hub[1] + r * ca - o * sa, hub[2] + r * sa + o * ca]);
+      const poly = [pt(0.4, 0.42), pt(R_ROT, 0.1), pt(R_ROT, -0.05), pt(0.4, -0.22)];
+      if (poly.some(q => !q)) continue;
+      ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(...q) : ctx.moveTo(...q)); ctx.closePath(); ctx.fill();
+    }
+    const tb = P(base); if (tb) label("Turbine", tb[0], tb[1] + 16, C.dim, "center");
+  }
+
   function drawLegend() {
     const x = 14, y = H - 18, w = Math.min(120, W * 0.28);
     for (let b = 0; b < NC; b++) {
@@ -166,11 +211,12 @@
   const paths = Array.from({ length: NC * NA }, () => null);
   const heads = Array.from({ length: NC }, () => null);
   function drawTracks(t) {
-    const { pos, spd, t0, t1, dt, off, n, N } = D;
+    const { pos, spd, t0, t1, dt, off, n } = D;
+    const run = sel >= 0 ? D.h.runs[sel] : null, i0 = run ? run.first : 0, i1 = run ? run.last : D.N;
     for (let i = 0; i < paths.length; i++) paths[i] = new Path2D();
     for (let i = 0; i < NC; i++) heads[i] = new Path2D();
     let active = 0;
-    for (let i = 0; i < N; i++) {
+    for (let i = i0; i < i1; i++) {
       if (t0[i] > t || t1[i] < t - TAIL) continue;
       const ta = Math.max(t0[i], t - TAIL), tb = Math.min(t, t1[i]);
       const ja = Math.floor((ta - t0[i]) / dt[i]), jb = Math.min(Math.ceil((tb - t0[i]) / dt[i]), n[i] - 1);
@@ -211,7 +257,8 @@
   }
 
   // start 1 s in so tails exist; with reduced motion, hold a still frame until Play is pressed
-  let progress = 0, failed = false, playing = !reduce, simT = reduce ? 6 : 1;
+  let progress = 0, failed = false, playing = !reduce, simT = reduce ? 6 : 1, sel = -1, speed = 1, swayT = 0;
+  const loopLen = () => sel >= 0 ? D.h.runs[sel].duration + TAIL : D.loop;
   function draw() {
     ctx.fillStyle = C.panel; ctx.fillRect(0, 0, W, H);
     if (!D) {
@@ -219,16 +266,17 @@
         W / 2, H / 2, C.text, "center");
       return;
     }
-    az = AZ0 + dragAz + (reduce ? 0 : 0.5 * Math.sin(2 * Math.PI * simT / 47));   // slow sway about a side view
+    az = AZ0 + dragAz + (reduce ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47));   // slow sway about the view
     el = Math.min(1.35, Math.max(-0.2, EL0 + dragEl));
-    setCam(D.ctr);
+    setCam([(D.ctr[0] + D.hub[0]) / 2, (D.ctr[1] + D.hub[1]) / 2, D.ctr[2] + 1.5]);
+    drawTurbine();
     drawBox();
-    const t = simT % D.loop;
+    const L = loopLen(), t = simT % L, run = sel >= 0 ? D.h.runs[sel] : null;
     const active = drawTracks(t);
-    label(`Measured · ${D.runs} runs overlaid`, 14, 24, C.ink);
-    label(`${active.toLocaleString("en")} of ${D.N.toLocaleString("en")} tracks in view`, 14, 41, C.dim);
-    label(`t = ${Math.min(t, D.loop - TAIL).toFixed(1)} s`, W - 14, 24, C.brass, "right");
-    label(playing ? "Real time" : "Paused", W - 14, 41, C.dim, "right");
+    label(run ? `Measured · Recording ${run.dataset}` : `Measured · ${D.runs} recordings overlaid`, 14, 24, C.ink);
+    label(`${active.toLocaleString("en")} of ${(run ? run.tracks : D.N).toLocaleString("en")} tracks in view`, 14, 41, C.dim);
+    label(`t = ${Math.min(t, L - TAIL).toFixed(1)} s`, W - 14, 24, C.brass, "right");
+    label(!playing ? "Paused" : speed === 1 ? "Real time" : `${speed}× real time`, W - 14, 41, C.dim, "right");
     drawLegend();
   }
   let queued = false;
@@ -239,7 +287,8 @@
   function tick(now) {
     if (!(visible && playing && D)) { running = false; return; }
     const d = (now - last) / 1000; last = now;
-    simT = Math.max(0, simT + Math.min(Math.max(d, 0), 0.1));
+    const step = Math.min(Math.max(d, 0), 0.1);
+    simT = Math.max(0, simT + step * speed); swayT += step;
     draw();
     requestAnimationFrame(tick);
   }
@@ -255,6 +304,17 @@
     p ? kick() : requestDraw();
   }
   btn.addEventListener("click", () => setPlaying(!playing));
+  // speed and recording controls
+  speedBtns.forEach(b => b.addEventListener("click", () => {
+    speed = +b.dataset.speed;
+    speedBtns.forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    requestDraw();
+  }));
+  if (runSel) runSel.addEventListener("change", () => {
+    sel = +runSel.value;
+    simT = Math.min(1, loopLen() / 4);     // restart near the beginning, with tails already showing
+    requestDraw(); kick();
+  });
   setPlaying(playing);
 
   // ---------- drag to rotate (horizontal drags on touch; vertical stays page scroll) ----------
