@@ -1,7 +1,7 @@
 // Schematic of the LPT processing chain: camera images -> triangulation -> tracks -> vortex.
-// Synthetic flow: an idealized tip-vortex line (along y) shed by an upstream rotor is advected
-// downstream at U; bubbles near it orbit the core (Lamb-Oseen swirl) while being carried along,
-// and every bubble also wanders incoherently with the atmospheric turbulence.
+// Synthetic flow: an upwind rotor sheds a helical tip vortex that is advected downstream at U
+// through the measurement volume; bubbles near a core orbit it (Lamb-Oseen swirl) while being
+// carried along, and every bubble also wanders incoherently with the atmospheric turbulence.
 (() => {
   const root = document.getElementById("pipeline");
   if (!root) return;
@@ -18,13 +18,19 @@
   // ---------- synthetic flow ----------
   const GAMMA = 12, RC = 0.8, U = 1.1, XMIN = -4.5, XMAX = 4.5, L = XMAX - XMIN, T = L / U;
   const GROUND = -6;
+  // rotor: hub at height RR, so the blade tips sweep through the volume centre (y = z = 0).
+  // NV helix turns cross the volume at a time; a blade passes the bottom every T / NV.
+  const XT = XMIN - 5, XR = XT - 0.5, RR = 4.6, NV = 2;
+  const OMR = NV * (2 * Math.PI / 3) / T, HS = U / OMR;     // rotor speed, helix pitch / 2π
+  // the core near the bottom of the helix: x shift and lift as a function of spanwise y
+  const coreOff = y => { const d = Math.asin(Math.max(-1, Math.min(1, y / RR))); return [-HS * d, RR * (1 - Math.cos(d))]; };
   const omega = r => GAMMA / (2 * Math.PI * r * r) * (1 - Math.exp(-r * r / (RC * RC)));
   let seed = 11;
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const parts = [];
   for (let i = 0; i < 44; i++) {            // bubbles near the core: orbit it while advected
-    const r = 0.35 + 2.6 * Math.sqrt(rand());
-    parts.push({ near: true, r, th0: rand() * 2 * Math.PI, y: -2.8 + 5.6 * rand() });
+    const r = 0.35 + 1.9 * Math.sqrt(rand());
+    parts.push({ near: true, core: i % NV, r, th0: rand() * 2 * Math.PI, y: -2.8 + 5.6 * rand() });
   }
   while (parts.length < 66) {               // bubbles far from the core: just advected
     const dx = (rand() - 0.5) * L, dz = (rand() - 0.5) * 5.6;
@@ -38,12 +44,13 @@
     })));
   }
   const wander = (p, t) => p.turb.map(axis => axis.reduce((s, m) => s + m.a * Math.sin(2 * Math.PI * m.f * t + m.ph), 0));
-  const coreX = t => XMIN + ((U * t) % L + L) % L;
+  const coreX = (t, c = 0) => XMIN + ((U * t + c * L / NV) % L + L) % L;
   function pos(p, t) {
     const [ex, ey, ez] = wander(p, t);
     if (p.near) {
-      const th = p.th0 + omega(p.r) * t;
-      return { x: coreX(t) + p.r * Math.cos(th) + ex, y: p.y + ey, z: p.r * Math.sin(th) + ez, wraps: Math.floor(U * t / L) };
+      const th = p.th0 + omega(p.r) * t, [ox, oz] = coreOff(p.y);
+      return { x: coreX(t, p.core) + ox + p.r * Math.cos(th) + ex, y: p.y + ey, z: oz + p.r * Math.sin(th) + ez,
+               wraps: Math.floor((U * t + p.core * L / NV) / L) };
     }
     const x = XMIN + U * t + p.dx, wraps = Math.floor((x - XMIN) / L);
     return { x: x - wraps * L + ex, y: p.y + ey, z: p.dz + ez, wraps };
@@ -125,29 +132,37 @@
     ctx.fillStyle = C.cam; ctx.fillRect(s.x - 5, s.y - 4, 10, 8);
     label(ctx, "Cam " + (i + 1), s.x, s.y + 18, C.dim, "center");
   }
-  // upwind turbine upstream of the volume (the volume sits in its wake); one blade passes the bottom (where the vortex line sits) every T,
-  // so it sheds the vortex that is then advected into the volume
-  const XT = XMIN - 5, RR = 4.6;
+  // upwind turbine upstream of the volume (the volume sits in its wake); its blade tips shed the
+  // helix, phased so each turn reaches the volume exactly where the bubbles' cores are
+  const bladeAngle = t => -Math.PI / 2 + OMR * (t + (XMIN - XR) / U);
   function drawTurbine(ctx, view, w, h, t, k) {
     ctx.strokeStyle = C.turbine; ctx.lineWidth = 2.2;
     seg(ctx, view, [XT, 0, GROUND], [XT, 0, RR - 0.3], w, h, k);
     ctx.lineWidth = 3; seg(ctx, view, [XT - 0.5, 0, RR], [XT + 1.1, 0, RR], w, h, k);   // nacelle points downstream
-    const a0 = -Math.PI / 2 + (2 * Math.PI / 3) * ((t + (XMIN - XT) / U) / T);
+    const a0 = bladeAngle(t);
     ctx.fillStyle = C.turbine;
     for (let b = 0; b < 3; b++) {
       const a = a0 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
-      const pt = (r, off) => [XT - 0.5, r * ca - off * sa, RR + r * sa + off * ca];   // upwind rotor
+      const pt = (r, off) => [XR, r * ca - off * sa, RR + r * sa + off * ca];   // upwind rotor
       const poly = [pt(0.3, 0.32), pt(RR, 0.08), pt(RR, -0.04), pt(0.3, -0.18)].map(P => scr(view, P, w, h, k));
       ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); ctx.fill();
     }
     const c = scr(view, [XT - 0.55, 0, RR], w, h, k);
     dotAt(ctx, c.x, c.y, 3, C.cam);
   }
-  function drawVortexLine(ctx, view, w, h, t, k, color, width) {
-    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
-    const x = coreX(t);
-    seg(ctx, view, [x, -3, 0], [x, 3, 0], w, h, k);
-    ctx.lineCap = "butt";
+  // the three tip-vortex helices, from the blade tips downstream to the end of the volume
+  function drawHelix(ctx, view, w, h, t, k, color, width) {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = "round";
+    const age = (XMAX + 0.5 - XR) / U;
+    for (let b = 0; b < 3; b++) {
+      ctx.beginPath();
+      for (let s = 0, i = 0; s <= age; s += age / 260, i++) {
+        const a = bladeAngle(t - s) + b * 2 * Math.PI / 3;
+        const q = scr(view, [XR + U * s, RR * Math.cos(a), RR + RR * Math.sin(a)], w, h, k);
+        i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y);
+      }
+      ctx.stroke();
+    }
   }
 
   // ---------- step renderers ----------
@@ -179,13 +194,13 @@
     // 02 follow one bubble through the volume; four lines of sight meet at it every frame
     match(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
-      const k = 1.75, view = orbit(-Math.PI / 2 + 0.42, 0.24, 25, [-2.6, 0, -0.4]);
+      const k = 1.75, view = orbit(-Math.PI / 2 + 0.42, 0.24, 29, [-2.6, 0, 1.0]);
       drawGround(ctx, view, w, h, k);
+      drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
       drawBox(ctx, view, w, h, k);
-      drawVortexLine(ctx, view, w, h, t, k, C.coreDim, 2);
       const cyc = Math.floor(U * t / L), t0 = cyc * T;
-      const pool = parts.filter(p => p.near && p.r > 0.7 && p.r < 1.8);
+      const pool = parts.filter(p => p.near && p.core === 0 && p.r > 0.7 && p.r < 1.8);
       const pick = pool[cyc % pool.length];
       for (const p of parts) {
         if (p === pick) continue;
@@ -220,6 +235,7 @@
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       const k = 1.9, view = orbit(-Math.PI / 2 + 0.36, 0.22, 13.5, [0, 0, 0]);
       drawBox(ctx, view, w, h, k);
+      drawHelix(ctx, view, w, h, t, k, C.coreDim, 2);
       const STEPS = 90, DT = 0.05;
       for (const p of parts) {
         let last = null;
@@ -234,6 +250,9 @@
         dotAt(ctx, last.x, last.y, 2, C.bubble);
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
+      const cx = [...Array(NV).keys()].map(c => coreX(t, c)).reduce((a, b) => Math.abs(b) < Math.abs(a) ? b : a);
+      const [ox, oz] = coreOff(-3), vx = scr(view, [cx + ox, -3, oz], w, h, k);
+      label(ctx, "Tip vortex", vx.x + 8, vx.y + 4, C.core);
     },
 
     // 04 the same instant in two views: 3D (lab frame) and along the vortex axis (moving with the core)
