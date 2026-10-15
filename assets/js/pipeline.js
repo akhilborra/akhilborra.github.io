@@ -165,6 +165,9 @@
     }
   }
 
+  // steps 02 and 03 share one wide view: rotor, helix and the volume in its wake
+  const K_WIDE = 1.75, VIEW_WIDE = orbit(-Math.PI / 2 + 0.42, 0.24, 29, [-2.6, 0, 1.0]);
+
   // ---------- step renderers ----------
   const steps = {
     // 01 four camera views
@@ -194,7 +197,7 @@
     // 02 follow one bubble through the volume; four lines of sight meet at it every frame
     match(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
-      const k = 1.75, view = orbit(-Math.PI / 2 + 0.42, 0.24, 29, [-2.6, 0, 1.0]);
+      const k = K_WIDE, view = VIEW_WIDE;
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
@@ -233,26 +236,31 @@
     // 03 link positions frame to frame into Lagrangian tracks
     track(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
-      const k = 1.9, view = orbit(-Math.PI / 2 + 0.36, 0.22, 13.5, [0, 0, 0]);
+      const k = K_WIDE, view = VIEW_WIDE;
+      drawGround(ctx, view, w, h, k);
+      drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
+      drawTurbine(ctx, view, w, h, t, k);
       drawBox(ctx, view, w, h, k);
-      drawHelix(ctx, view, w, h, t, k, C.coreDim, 2);
       const STEPS = 90, DT = 0.05;
       for (const p of parts) {
         let last = null;
         for (let j = STEPS; j >= 0; j--) {
           const P = pos(p, t - j * DT), q = scr(view, P3(P), w, h, k);
           if (last && last.wraps === P.wraps) {
-            ctx.strokeStyle = `rgba(242,240,234,${0.06 + 0.6 * (1 - j / STEPS)})`; ctx.lineWidth = 1.2;
+            ctx.strokeStyle = `rgba(242,240,234,${0.06 + 0.6 * (1 - j / STEPS)})`; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(q.x, q.y); ctx.stroke();
           }
           last = { x: q.x, y: q.y, wraps: P.wraps };
         }
-        dotAt(ctx, last.x, last.y, 2, C.bubble);
+        dotAt(ctx, last.x, last.y, 1.6, C.bubble);
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
       const cx = [...Array(NV).keys()].map(c => coreX(t, c)).reduce((a, b) => Math.abs(b) < Math.abs(a) ? b : a);
-      const [ox, oz] = coreOff(-3), vx = scr(view, [cx + ox, -3, oz], w, h, k);
-      label(ctx, "Tip vortex", vx.x + 8, vx.y + 4, C.core);
+      // label a point on the helix just above the volume, clear of the tracks
+      const vx = scr(view, [cx - HS * 1.1, RR * Math.sin(1.1), RR * (1 - Math.cos(1.1))], w, h, k);
+      label(ctx, "Tip vortex", vx.x + 8, vx.y - 6, C.core);
+      const tb = scr(view, [XT, 0, GROUND], w, h, k);
+      label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
     },
 
     // 04 the same instant in two views: 3D (lab frame) and along the vortex axis (moving with the core)
