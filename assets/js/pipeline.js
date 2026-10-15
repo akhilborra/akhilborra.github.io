@@ -236,7 +236,8 @@
     // 03 link positions frame to frame into Lagrangian tracks
     track(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
-      const k = K_WIDE, view = VIEW_WIDE;
+      // same viewing angle as step 02, a bit closer to the volume
+      const k = K_WIDE, view = orbit(-Math.PI / 2 + 0.42, 0.24, 21, [-1.8, 0, 0.6]);
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
