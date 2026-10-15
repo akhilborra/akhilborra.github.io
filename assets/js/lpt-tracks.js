@@ -4,7 +4,8 @@
 // The 18 recordings are overlaid on one clock, each starting at its own first frame, and play
 // with fading tails; one recording can be picked instead, and the speed changed (1x = real time).
 // The turbine is drawn from the processing settings (4d-ptv settings.json, same camera-plane frame
-// as the tracks). Drag to rotate; the view otherwise sways slowly about a view from behind.
+// as the tracks). Drag to rotate, shift/right-drag or two fingers to pan, wheel or pinch to zoom, double-click to reset;
+// until then the view sways slowly about a view from behind.
 // Animates only while on screen; prefers-reduced-motion holds a still frame until Play is pressed.
 (() => {
   const fig = document.getElementById("lpt-tracks");
@@ -112,17 +113,19 @@
 
   // ---------- camera ----------
   // seen from behind the turbine and a little to its left, like the schematic above
-  const AZ0 = -0.98, EL0 = 0.2, DIST = 34, K = 2.2;
+  const AZ0 = -0.98, EL0 = 0.2, DIST = 34, K = 2.2, ZMIN = 0.18, ZMAX = 2.4;
   let az = AZ0, el = EL0, dragAz = 0, dragEl = 0, cam = null;
-  function setCam(target) {
+  let zoom = 0.85, pan = [0, 0, 0], interacted = false;     // zoom: distance factor; pan: world offset [m]
+  function setCam(target0) {
+    const target = target0.map((v, k) => v + pan[k]), dist = DIST * zoom;
     const ca = Math.cos(az), sa = Math.sin(az), ce = Math.cos(el), se = Math.sin(el);
-    const eye = [target[0] + DIST * ca * ce, target[1] + DIST * sa * ce, target[2] + DIST * se];
+    const eye = [target[0] + dist * ca * ce, target[1] + dist * sa * ce, target[2] + dist * se];
     let f = [target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]];
     const fl = Math.hypot(...f); f = f.map(v => v / fl);
     let r = [f[1], -f[0], 0]; const rl = Math.hypot(...r); r = r.map(v => v / rl);      // f x z
     const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
     const s = Math.min(W * 1.35, H * 1.25) * 0.5 * K, cx = W / 2, cy = H / 2 - 2;
-    cam = { eye, f, r, u, s, cx, cy };
+    cam = { eye, f, r, u, s, cx, cy, dist };
   }
   // project into out[0..1]; returns false if behind the camera
   const out = [0, 0];
@@ -167,33 +170,75 @@
     }
   }
 
+  // ---------- turbine: tapered tubular tower, nacelle with spinner, twisted tapered blades ----------
+  // Shapes are projected silhouettes, shaded across their width to read as solid bodies.
+  const TW = { base: 0.42, top: 0.26 };                  // tower radius [m]
+  const NAC = { r: 0.36, len: 2.3 }, SPIN = 0.42;        // nacelle radius / length, spinner radius [m]
+  // blade planform: [r/R, chord/R, twist rad] (generic small-turbine blade, chord max near 20% span)
+  const BLADE = [[0.07, 0.07, 0.38], [0.12, 0.095, 0.34], [0.2, 0.105, 0.26], [0.35, 0.09, 0.17],
+                 [0.5, 0.074, 0.11], [0.65, 0.06, 0.07], [0.8, 0.046, 0.04], [0.92, 0.035, 0.02], [1, 0.022, 0.01]];
+  const shade = (x0, y0, x1, y1, lit, dark) => {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, dark); g.addColorStop(0.35, lit); g.addColorStop(1, dark); return g;
+  };
+  function body(a, b, ra, rb, lit, dark) {    // projected cylinder/cone silhouette from a to b
+    if (!proj(...a)) return; const A = [out[0], out[1]], za = depth(a);
+    if (!proj(...b)) return; const B = [out[0], out[1]], zb = depth(b);
+    let nx = -(B[1] - A[1]), ny = B[0] - A[0]; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    const wa = ra * cam.s / za, wb = rb * cam.s / zb;
+    ctx.fillStyle = shade(A[0] - nx * wa, A[1] - ny * wa, A[0] + nx * wa, A[1] + ny * wa, lit, dark);
+    ctx.beginPath();
+    ctx.moveTo(A[0] + nx * wa, A[1] + ny * wa); ctx.lineTo(B[0] + nx * wb, B[1] + ny * wb);
+    ctx.arc(B[0], B[1], wb, Math.atan2(ny, nx), Math.atan2(ny, nx) + Math.PI, true);
+    ctx.lineTo(A[0] - nx * wa, A[1] - ny * wa);
+    ctx.arc(A[0], A[1], wa, Math.atan2(-ny, -nx), Math.atan2(-ny, -nx) + Math.PI, true);
+    ctx.closePath(); ctx.fill();
+  }
+  const depth = v => (v[0] - cam.eye[0]) * cam.f[0] + (v[1] - cam.eye[1]) * cam.f[1] + (v[2] - cam.eye[2]) * cam.f[2];
+  function blades(hub) {
+    for (let b = 0; b < 3; b++) {
+      const a = Math.PI / 2 + 0.35 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
+      // radial unit (in the rotor plane), tangential unit (in plane), axial unit (-x, upwind)
+      const rad = [0, ca, sa], tan = [0, -sa, ca];
+      const lead = [], trail = [];
+      for (const [rr, cc, tw] of BLADE) {
+        const r = rr * R_ROT, c = cc * R_ROT;
+        const ch = [-Math.sin(tw), tan[1] * Math.cos(tw), tan[2] * Math.cos(tw)];   // chord line, twisted out of plane
+        const P = (f) => [hub[0] + ch[0] * c * f, hub[1] + rad[1] * r + ch[1] * c * f, hub[2] + rad[2] * r + ch[2] * c * f];
+        if (!proj(...P(0.3))) return; lead.push([out[0], out[1]]);
+        if (!proj(...P(-0.7))) return; trail.push([out[0], out[1]]);
+      }
+      const root = lead[0], tip = lead[lead.length - 1];
+      ctx.fillStyle = shade(root[0], root[1], tip[0], tip[1], "rgba(236,235,229,.92)", "rgba(170,172,168,.85)");
+      ctx.beginPath(); lead.forEach((q, i) => i ? ctx.lineTo(...q) : ctx.moveTo(...q));
+      for (let i = trail.length - 1; i >= 0; i--) ctx.lineTo(...trail[i]);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(15,18,17,.35)"; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+    // spinner
+    if (proj(hub[0] - 0.25, hub[1], hub[2])) {
+      const rs = SPIN * cam.s / depth([hub[0] - 0.25, hub[1], hub[2]]);
+      const g = ctx.createRadialGradient(out[0] - rs * 0.35, out[1] - rs * 0.35, rs * 0.1, out[0], out[1], rs);
+      g.addColorStop(0, "#f2f0ea"); g.addColorStop(1, "#8d918d");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(out[0], out[1], rs, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
   function drawTurbine() {
     const { base, hub } = D;
     const P = v => proj(v[0], v[1], v[2]) ? [out[0], out[1]] : null;
     // ground grid around the tower and under the volume
     ctx.strokeStyle = C.ground; ctx.lineWidth = 1; ctx.beginPath();
-    for (let x = -12; x <= 6; x += 2) { const a = P([x, -10, base[2]]), b = P([x, 8, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
-    for (let y = -10; y <= 8; y += 2) { const a = P([-12, y, base[2]]), b = P([6, y, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
+    for (let x = -14; x <= 8; x += 2) { const a = P([x, -12, base[2]]), b = P([x, 10, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
+    for (let y = -12; y <= 10; y += 2) { const a = P([-14, y, base[2]]), b = P([8, y, base[2]]); if (a && b) { ctx.moveTo(...a); ctx.lineTo(...b); } }
     ctx.stroke();
-    ctx.strokeStyle = C.turbine; ctx.fillStyle = C.turbine;
-    const line = (a, b, w) => { const A = P(a), B = P(b); if (!A || !B) return; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(...A); ctx.lineTo(...B); ctx.stroke(); };
-    line(base, [base[0], base[1], hub[2] - 0.4], 2.2);                          // tower
-    line(hub, [base[0] + 0.9, base[1], hub[2]], 3.4);                            // nacelle
-    // rotor disc and three blades (fixed: the rotor phase is not part of the track data)
-    ctx.setLineDash([3, 5]); ctx.lineWidth = 1; ctx.beginPath();
-    for (let j = 0; j <= 72; j++) {
-      const a = 2 * Math.PI * j / 72, q = P([hub[0], hub[1] + R_ROT * Math.cos(a), hub[2] + R_ROT * Math.sin(a)]);
-      if (q) j ? ctx.lineTo(...q) : ctx.moveTo(...q);
-    }
-    ctx.strokeStyle = "rgba(236,235,229,.16)"; ctx.stroke(); ctx.setLineDash([]);
-    for (let b = 0; b < 3; b++) {
-      const a = Math.PI / 2 + b * 2 * Math.PI / 3, ca = Math.cos(a), sa = Math.sin(a);
-      const pt = (r, o) => P([hub[0], hub[1] + r * ca - o * sa, hub[2] + r * sa + o * ca]);
-      const poly = [pt(0.4, 0.42), pt(R_ROT, 0.1), pt(R_ROT, -0.05), pt(0.4, -0.22)];
-      if (poly.some(q => !q)) continue;
-      ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(...q) : ctx.moveTo(...q)); ctx.closePath(); ctx.fill();
-    }
-    const tb = P(base); if (tb) label("Turbine", tb[0], tb[1] + 16, C.dim, "center");
+    const top = [base[0], base[1], hub[2] - NAC.r * 0.9];
+    const nacA = [hub[0] + 0.2, hub[1], hub[2]], nacB = [hub[0] + NAC.len, hub[1], hub[2]];
+    const tower = () => body(base, top, TW.base, TW.top, "#d4d3cd", "#6f736f");
+    const nacelle = () => body(nacA, nacB, NAC.r, NAC.r * 0.8, "#e2e1db", "#7b7f7b");
+    // painter's order: whichever of rotor and tower is nearer the camera goes last
+    if (cam.eye[0] > hub[0]) { blades(hub); nacelle(); tower(); }
+    else { tower(); nacelle(); blades(hub); }
+    const tb = P(base); if (tb) label("Turbine", tb[0], tb[1] + 18, C.dim, "center");
   }
 
   function drawLegend() {
@@ -266,7 +311,7 @@
         W / 2, H / 2, C.text, "center");
       return;
     }
-    az = AZ0 + dragAz + (reduce ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47));   // slow sway about the view
+    az = AZ0 + dragAz + (reduce || interacted ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47));   // slow sway until the viewer takes over
     el = Math.min(1.35, Math.max(-0.2, EL0 + dragEl));
     setCam([(D.ctr[0] + D.hub[0]) / 2, (D.ctr[1] + D.hub[1]) / 2, D.ctr[2] + 1.5]);
     drawTurbine();
@@ -317,17 +362,61 @@
   });
   setPlaying(playing);
 
-  // ---------- drag to rotate (horizontal drags on touch; vertical stays page scroll) ----------
-  let drag = null;
-  canvas.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, az: dragAz, el: dragEl }; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener("pointermove", e => {
-    if (!drag) return;
-    dragAz = drag.az - (e.clientX - drag.x) * 0.008;
-    dragEl = drag.el + (e.clientY - drag.y) * 0.006;
-    if (!running) requestDraw();
+  // ---------- move around: drag rotates; shift/right-drag or two fingers pans; wheel/pinch zooms ----------
+  const redraw = () => { if (!running) requestDraw(); };
+  const takeOver = () => {
+    if (!interacted) { interacted = true; dragAz += reduce ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47); }
+  };
+  const setZoom = z => { zoom = Math.min(ZMAX, Math.max(ZMIN, z)); redraw(); };
+  function panBy(dx, dy) {      // screen pixels -> metres at the target distance
+    if (!cam) return; const m = cam.dist / cam.s;
+    for (let k = 0; k < 3; k++) pan[k] += (-dx * cam.r[k] + dy * cam.u[k]) * m;
+    redraw();
+  }
+  const pts = new Map();
+  let gesture = null;
+  canvas.addEventListener("contextmenu", e => e.preventDefault());
+  canvas.addEventListener("pointerdown", e => {
+    takeOver();
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    canvas.setPointerCapture(e.pointerId);
+    if (pts.size === 1) gesture = { mode: e.shiftKey || e.button === 2 ? "pan" : "rotate", x: e.clientX, y: e.clientY };
+    else if (pts.size === 2) {
+      const [a, b] = [...pts.values()];
+      gesture = { mode: "pinch", d: Math.hypot(a.x - b.x, a.y - b.y), z: zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    }
   });
-  const end = () => { drag = null; };
+  canvas.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId) || !gesture) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (gesture.mode === "pinch" && pts.size >= 2) {
+      const [a, b] = [...pts.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      setZoom(gesture.z * gesture.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)));
+      panBy(mx - gesture.mx, my - gesture.my); gesture.mx = mx; gesture.my = my;
+    } else if (gesture.mode === "pan") {
+      panBy(e.clientX - gesture.x, e.clientY - gesture.y); gesture.x = e.clientX; gesture.y = e.clientY;
+    } else if (gesture.mode === "rotate") {
+      dragAz -= (e.clientX - gesture.x) * 0.008; dragEl += (e.clientY - gesture.y) * 0.006;
+      gesture.x = e.clientX; gesture.y = e.clientY; redraw();
+    }
+  });
+  const end = e => {
+    pts.delete(e.pointerId);
+    if (pts.size === 1) { const [p] = pts.values(); gesture = { mode: "rotate", x: p.x, y: p.y }; }
+    else if (!pts.size) gesture = null;
+  };
   canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault(); takeOver();
+    setZoom(zoom * Math.exp((e.ctrlKey ? 0.01 : 0.0015) * e.deltaY));
+  }, { passive: false });
+  function resetView() { interacted = false; dragAz = 0; dragEl = 0; zoom = 0.85; pan = [0, 0, 0]; redraw(); }
+  canvas.addEventListener("dblclick", resetView);
+  fig.querySelectorAll(".lpt-nav button").forEach(b => b.addEventListener("click", () => {
+    takeOver();
+    const z = b.dataset.zoom;
+    z === "in" ? setZoom(zoom / 1.3) : z === "out" ? setZoom(zoom * 1.3) : resetView();
+  }));
 
   new ResizeObserver(fit).observe(canvas);
   let started = false;

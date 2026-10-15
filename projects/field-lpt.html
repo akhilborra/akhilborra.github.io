@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/style.css?v=12">
+  <link rel="stylesheet" href="../assets/css/style.css?v=13">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="../assets/js/site.js?v=7"></script>
-  <script defer src="../assets/js/lpt-tracks.js?v=3"></script>
+  <script defer src="../assets/js/lpt-tracks.js?v=4"></script>
   <script defer src="../assets/js/pipeline.js?v=21"></script>
 </head>
 <body>
@@ -107,6 +107,11 @@
       <figure class="lpt-tracks" id="lpt-tracks" data-src="../assets/data/lpt-tracks.bin?v=1">
         <div class="lpt-stage">
           <canvas aria-label="Animated 3D view of all 38,551 measured helium-filled soap bubble trajectories from the March 2026 campaign, coloured by speed, playing in real time"></canvas>
+          <div class="lpt-nav" role="group" aria-label="View">
+            <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+            <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+            <button type="button" data-zoom="reset" aria-label="Reset view">Reset</button>
+          </div>
           <button class="viewer-btn lpt-play" type="button" aria-pressed="false">Pause</button>
         </div>
         <div class="lpt-controls">
@@ -122,7 +127,7 @@
             <button type="button" data-speed="4" aria-pressed="false">4×</button>
           </div>
         </div>
-        <figcaption><span class="badge">Measured data</span>All 38,551 bubble trajectories reconstructed from 18 recordings of the March 2026 campaign behind the Aventa turbine, played back in real time. The recordings, 2 to 17 s each at 300–930 Hz, are overlaid on a common clock starting at each one's first frame. Tracks are shown at about 40 samples per second with a 0.45 s fading tail; colour is the measured bubble speed. The turbine is drawn at its surveyed position relative to the cameras. Pick a single recording or change the playback speed below the view; drag to rotate.</figcaption>
+        <figcaption><span class="badge">Measured data</span>All 38,551 bubble trajectories reconstructed from 18 recordings of the March 2026 campaign behind the Aventa turbine, played back in real time. The recordings, 2 to 17 s each at 300–930 Hz, are overlaid on a common clock starting at each one's first frame. Tracks are shown at about 40 samples per second with a 0.45 s fading tail; colour is the measured bubble speed. The turbine is drawn at its surveyed position relative to the cameras. Pick a single recording or change the playback speed below the view. Drag to rotate, shift-drag (or two fingers) to pan, scroll or pinch to zoom, double-click to reset.</figcaption>
       </figure>
       <div class="callout"><p>In collaboration with Mano Grunwald and Claudia Brunner (MPI-DS).</p></div>
 

@@ -386,6 +386,14 @@ figure.lpt-tracks .lpt-stage { position: relative; }
 figure.lpt-tracks figcaption { margin-top: 10px; font-size: .86rem; color: var(--ink-3); }
 @media (min-width: 1100px) { .prose > figure.lpt-tracks { margin-left: -120px; margin-right: -120px; } }
 @media (max-width: 600px) { figure.lpt-tracks canvas { aspect-ratio: 4 / 5; } }
+.lpt-nav { position: absolute; right: 12px; bottom: 56px; display: flex; gap: 6px; }
+.lpt-nav button {
+  min-width: 36px; height: 32px; padding: 0 10px; border-radius: 999px; cursor: pointer;
+  background: rgba(15,18,17,.72); color: var(--ink); border: 1px solid var(--rule); backdrop-filter: blur(6px);
+  font: 600 .8rem var(--sans);
+}
+.lpt-nav button[data-zoom="reset"] { font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; }
+.lpt-nav button:hover { border-color: var(--ink-3); }
 .lpt-controls { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; margin-top: 12px; }
 .lpt-field, .lpt-speed { display: flex; align-items: center; gap: 10px; }
 .lpt-field span, .lpt-speed span { font: 600 .68rem var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
