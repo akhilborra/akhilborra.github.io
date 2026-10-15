@@ -138,6 +138,11 @@ section + section, main + footer { border-top: 1px solid rgba(236, 235, 229, .06
   display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
   pointer-events: none;
 }
+.hero-portrait {
+  display: block; width: clamp(96px, 11vw, 150px); height: auto; aspect-ratio: 1; object-fit: cover;
+  border-radius: 50%; margin-bottom: clamp(14px, 2.4vh, 24px);
+  border: 2px solid var(--brass); box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+}
 .hero-name { font-size: clamp(3.4rem, 10.5vw, 10rem); color: var(--ink); }
 .hero-sub { margin-top: 18px; max-width: 34em; color: var(--ink-2); font-size: .98rem; }
 .hero-sub strong { color: var(--ink); font-weight: 600; }
@@ -216,7 +221,7 @@ section + section, main + footer { border-top: 1px solid rgba(236, 235, 229, .06
   clip-path: polygon(28px 0, 100% 0, 100% 100%, 0 100%);
 }
 .tile .tag b { font-weight: 600; font-size: .92rem; color: var(--on-char); }
-.tile .tag span { font: 600 .82rem var(--sans); color: var(--brass-hi); }
+.tile .tag span { font: 600 .82rem var(--sans); color: var(--brass-hi); white-space: nowrap; }
 .tile .chip {
   position: absolute; left: 14px; top: 14px; padding: 4px 10px; border-radius: 999px;
   background: rgba(21, 24, 22, .78); color: var(--on-char); backdrop-filter: blur(6px);
@@ -224,7 +229,15 @@ section + section, main + footer { border-top: 1px solid rgba(236, 235, 229, .06
 }
 .tile.text-tile { display: grid; place-items: center; }
 .tile.text-tile .big { font-family: var(--serif); font-style: italic; font-size: clamp(1.6rem, 3vw, 2.6rem); color: var(--on-char-2); text-align: center; padding: 0 12% 10%; line-height: 1.1; }
-@media (max-width: 760px) { .tiles { grid-template-columns: 1fr; } }
+.tiles.t3 { grid-template-columns: repeat(3, 1fr); }
+.group { margin-top: clamp(48px, 9vh, 96px); }
+.group-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px 48px; flex-wrap: wrap; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--rule-dark); }
+.group-head h3 { font-size: clamp(2.4rem, 6vw, 5rem); color: var(--on-char); }
+.group-head h3 em { display: block; font-size: .42em; line-height: 1; margin-bottom: .08em; }
+.group-head p { max-width: 30em; color: var(--on-char-2); margin: 0; }
+#analysis .tiles { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1000px) { .tiles.t3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .tiles, .tiles.t3, #analysis .tiles { grid-template-columns: 1fr; } }
 
 /* ---------- Publications ---------- */
 .pubs-sec { padding: clamp(80px, 14vh, 150px) 0; }
@@ -259,7 +272,7 @@ section + section, main + footer { border-top: 1px solid rgba(236, 235, 229, .06
   padding: clamp(56px, 10vh, 110px) clamp(20px, 4vw, 56px) 28px;
 }
 .finale h2 { text-align: center; font-size: clamp(3rem, 9.5vw, 9.2rem); }
-.finale .contact { display: flex; justify-content: center; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+.finale .contact { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .btn-light {
   display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 8px 0 20px; border-radius: 999px;
   background: var(--on-char); color: var(--char); text-decoration: none;

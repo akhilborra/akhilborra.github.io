@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=10">
+  <link rel="stylesheet" href="assets/css/style.css?v=11">
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <script defer src="assets/js/site.js?v=7"></script>
 </head>
@@ -25,10 +25,9 @@
     </div>
     <nav>
       <a href="#work"><small>01</small>Projects</a>
-      <a href="#field"><small>02</small>Field &amp; Lab</a>
-      <a href="#publications"><small>03</small>Publications</a>
-      <a href="#career"><small>04</small>Career</a>
-      <a href="#contact"><small>05</small>Contact</a>
+      <a href="#publications"><small>02</small>Publications</a>
+      <a href="#career"><small>03</small>Career</a>
+      <a href="#contact"><small>04</small>Contact</a>
     </nav>
     <div class="menu-foot">
       <a href="mailto:akhil.borra@gmail.com">akhil.borra@gmail.com</a>
@@ -50,6 +49,7 @@
       </div>
       <div class="hero-copy">
         <div>
+          <img class="hero-portrait" src="assets/img/portrait.jpg" alt="Portrait of Akhileshwar Borra" width="640" height="640">
           <h1 class="display hero-name">Akhileshwar<br>Borra</h1>
           <p class="hero-sub"><strong>Experimental fluid dynamics &amp; wind energy.</strong> Above: our field setup, with bubble paths from a particle simulation drifting through a turbine's tip vortices.</p>
         </div>
@@ -90,66 +90,66 @@
       </div>
     </section>
 
-    <!-- Field / Lab -->
-    <section class="split streams-light" id="field">
-      <div class="wrap split-grid">
-        <div class="split-col reveal">
-          <h2 class="display"><em>In the</em>Field</h2>
-          <p>Full-scale measurements at operating wind turbines and wind farms, where the inflow is real atmospheric turbulence.</p>
-          <ul>
-            <li><a href="projects/field-lpt.html">Particle tracking of tip vortices <span>2025 –</span></a></li>
-            <li><a href="projects/balloon-tracers.html">Balloon tracers in wind farms <span>2025 –</span></a></li>
-          </ul>
-          <img class="shot" src="assets/img/balloon-winsent.jpg" alt="Research turbines and met masts at the WINSENT test site" loading="lazy">
-        </div>
-        <div class="split-col reveal">
-          <h2 class="display"><em>In the</em>Lab</h2>
-          <p>Controlled wind tunnel experiments, from pressurized rotor testing to boundary layers, wakes and the methods to analyze them.</p>
-          <ul>
-            <li><a href="projects/pressurized-tunnel.html">Rotor performance at high Reynolds number <span>2025 –</span></a></li>
-            <li><a href="projects/pressure-gradient-tbl.html">Turbulent boundary layer separation <span>2019 – 24</span></a></li>
-            <li><a href="projects/modal-analysis.html">Modal analysis for fluid flows <span>2020 – 25</span></a></li>
-            <li><a href="projects/propeller-wakes.html">Propeller wakes <span>2021 – 23</span></a></li>
-          </ul>
-          <img class="shot" src="assets/img/tbl-cad.jpg" alt="CAD of the boundary layer test section" loading="lazy">
-        </div>
-      </div>
-    </section>
-
-    <!-- Work grid -->
+    <!-- Projects: field, lab, analysis -->
     <section class="work on-dark" id="work">
       <div class="wrap">
         <div class="work-head">
-          <h2 class="display reveal">Selected<br><em>projects</em></h2>
-          <p class="reveal">Six projects across field campaigns, wind tunnels and data analysis, each with figures, methods and the papers behind them.</p>
+          <h2 class="display reveal">Projects</h2>
+          <p class="reveal">Field campaigns at full-scale turbines, controlled wind tunnel experiments, and the analysis techniques behind them. Each page has figures, methods and the papers.</p>
         </div>
-        <div class="tiles">
-          <a class="tile reveal" href="projects/field-lpt.html">
-            <img src="assets/img/lpt-render.jpg" alt="" loading="lazy">
-            <span class="chip">3D model</span>
-            <span class="tag"><b>Field-scale particle tracking</b><span>2025</span></span>
-          </a>
-          <a class="tile reveal" href="projects/balloon-tracers.html">
-            <img src="assets/img/balloon-tracks.jpg" alt="" loading="lazy">
-            <span class="chip">3D model</span>
-            <span class="tag"><b>Balloon tracers</b><span>2026</span></span>
-          </a>
-          <a class="tile contain reveal" href="projects/pressurized-tunnel.html">
-            <img src="assets/img/vdtt-cp.jpg" alt="" loading="lazy">
-            <span class="tag"><b>Rotors at high Reynolds number</b><span>2025</span></span>
-          </a>
-          <a class="tile reveal" href="projects/pressure-gradient-tbl.html">
-            <img src="assets/img/tbl-mean.jpg" alt="" loading="lazy">
-            <span class="tag"><b>Boundary layer separation</b><span>2024</span></span>
-          </a>
-          <a class="tile contain reveal" href="projects/modal-analysis.html">
-            <img src="assets/img/modal-spod.jpg" alt="" loading="lazy">
-            <span class="tag"><b>Modal analysis · IPhaB POD</b><span>2025</span></span>
-          </a>
-          <a class="tile text-tile reveal" href="projects/propeller-wakes.html">
-            <span class="big">Propellers that mitigate tip vortex roll-up</span>
-            <span class="tag"><b>Propeller wakes</b><span>2023</span></span>
-          </a>
+
+        <div class="group" id="field">
+          <div class="group-head reveal">
+            <h3 class="display"><em>In the</em>Field</h3>
+            <p>Full-scale measurements at operating wind turbines and wind farms, where the inflow is real atmospheric turbulence.</p>
+          </div>
+          <div class="tiles">
+            <a class="tile reveal" href="projects/field-lpt.html">
+              <img src="assets/img/lpt-render.jpg" alt="" loading="lazy">
+              <span class="chip">3D model</span>
+              <span class="tag"><b>Particle tracking of tip vortices</b><span>2025 –</span></span>
+            </a>
+            <a class="tile reveal" href="projects/balloon-tracers.html">
+              <img src="assets/img/balloon-tracks.jpg" alt="" loading="lazy">
+              <span class="chip">3D model</span>
+              <span class="tag"><b>Balloon tracers in wind farms</b><span>2025 –</span></span>
+            </a>
+          </div>
+        </div>
+
+        <div class="group" id="lab">
+          <div class="group-head reveal">
+            <h3 class="display"><em>In the</em>Lab</h3>
+            <p>Controlled wind tunnel experiments, from pressurized rotor testing to boundary layers and wakes.</p>
+          </div>
+          <div class="tiles t3">
+            <a class="tile reveal" href="projects/pressurized-tunnel.html">
+              <img src="assets/img/rotor-2.jpg" alt="" loading="lazy">
+              <span class="chip">3D model</span>
+              <span class="tag"><b>Rotors at high Reynolds number</b><span>2025 –</span></span>
+            </a>
+            <a class="tile reveal" href="projects/pressure-gradient-tbl.html">
+              <img src="assets/img/tbl-mean.jpg" alt="" loading="lazy">
+              <span class="tag"><b>Boundary layer separation</b><span>2019 – 24</span></span>
+            </a>
+            <a class="tile text-tile reveal" href="projects/propeller-wakes.html">
+              <span class="big">Propellers that mitigate tip vortex roll-up</span>
+              <span class="tag"><b>Propeller wakes</b><span>2021 – 23</span></span>
+            </a>
+          </div>
+        </div>
+
+        <div class="group" id="analysis">
+          <div class="group-head reveal">
+            <h3 class="display"><em>Analysis</em>Techniques</h3>
+            <p>Methods for pulling interpretable structure out of turbulent flow data, used across the field and lab measurements.</p>
+          </div>
+          <div class="tiles">
+            <a class="tile contain reveal" href="projects/modal-analysis.html">
+              <img src="assets/img/modal-spod.jpg" alt="" loading="lazy">
+              <span class="tag"><b>Modal analysis · IPhaB POD</b><span>2020 – 25</span></span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -229,7 +229,6 @@
   <!-- Finale footer -->
   <footer class="finale-wrap" id="contact">
     <div class="finale on-dark streams-dark">
-      <h2 class="display reveal">Always following<br>the <em>flow.</em></h2>
       <div class="contact reveal">
         <a class="btn-light" href="mailto:akhil.borra@gmail.com">Email me <i>↗</i></a>
         <a class="btn-ghost" href="https://github.com/akhilborra">GitHub</a>
@@ -242,16 +241,10 @@
           <a href="#career">Career</a>
         </div>
         <div>
-          <div class="label">Field work</div>
-          <a href="projects/field-lpt.html">Particle tracking</a>
-          <a href="projects/balloon-tracers.html">Balloon tracers</a>
-          <a href="projects/pressurized-tunnel.html">Pressurized tunnel</a>
-        </div>
-      </div>
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track">
-          <span>Max Planck Institute for Dynamics and Self-Organization</span><span>Technical University of Munich</span><span>University of Illinois Urbana-Champaign</span><span>Johns Hopkins Applied Physics Laboratory</span><span>University of Massachusetts Amherst</span>
-          <span>Max Planck Institute for Dynamics and Self-Organization</span><span>Technical University of Munich</span><span>University of Illinois Urbana-Champaign</span><span>Johns Hopkins Applied Physics Laboratory</span><span>University of Massachusetts Amherst</span>
+          <div class="label">Projects</div>
+          <a href="#field">In the field</a>
+          <a href="#lab">In the lab</a>
+          <a href="#analysis">Analysis</a>
         </div>
       </div>
       <div class="legal"><span>© 2026 Akhileshwar Borra</span><span>Göttingen, Germany</span></div>
