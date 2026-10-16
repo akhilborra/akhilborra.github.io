@@ -14,7 +14,7 @@
   const btn = fig.querySelector(".lpt-play");
   const runSel = fig.querySelector(".lpt-run");
   const speedBtns = [...fig.querySelectorAll(".lpt-speed button")];
-  const src = fig.dataset.src;
+  const src = fig.dataset.src, meshSrc = fig.dataset.turbine;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const C = {
@@ -77,6 +77,26 @@
       buf = out.buffer;
     } else buf = await res.arrayBuffer();
     parse(buf);
+  }
+  // turbine mesh exported from the Blender setup model (tools/export_turbine_mesh.py)
+  let MESH = null;
+  async function loadMesh() {
+    if (!meshSrc) return;
+    const m = await (await fetch(meshSrc)).json();
+    const tris = [];
+    for (const p of m.parts) {
+      const v = p.v, t = p.t;
+      for (let i = 0; i < t.length; i += 3) {
+        const a = 3 * t[i], b = 3 * t[i + 1], c = 3 * t[i + 2];
+        const A = [v[a], v[a + 1], v[a + 2]], B = [v[b], v[b + 1], v[b + 2]], Cc = [v[c], v[c + 1], v[c + 2]];
+        const u = A.map((x, k) => B[k] - x), w = A.map((x, k) => Cc[k] - x);
+        let n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+        const l = Math.hypot(...n); if (!l) continue; n = n.map(x => x / l);
+        tris.push({ p: [A, B, Cc], n, blade: p.name.startsWith("Blade") });
+      }
+    }
+    MESH = tris;
+    requestDraw();
   }
   function parse(buf) {
     const hl = new DataView(buf).getUint32(0, true);
@@ -223,6 +243,36 @@
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(out[0], out[1], rs, 0, 2 * Math.PI); ctx.fill();
     }
   }
+  // flat-shaded mesh: sun from above and to one side plus a weak headlight; two-sided for the thin
+  // blades; triangles drawn far to near
+  const SUN = (() => { const v = [0.35, -0.45, 0.82], l = Math.hypot(...v); return v.map(x => x / l); })();
+  const order = [];
+  function drawMesh(base) {
+    order.length = 0;
+    for (const tr of MESH) {
+      const q = [];
+      let d = 0, ok = true;
+      for (const P of tr.p) {
+        const x = base[0] + P[0], y = base[1] + P[1], z = base[2] + P[2];
+        if (!proj(x, y, z)) { ok = false; break; }
+        q.push(out[0], out[1]); d += depth([x, y, z]);
+      }
+      if (!ok) continue;
+      let ns = tr.n[0] * SUN[0] + tr.n[1] * SUN[1] + tr.n[2] * SUN[2];
+      let nv = -(tr.n[0] * cam.f[0] + tr.n[1] * cam.f[1] + tr.n[2] * cam.f[2]);
+      if (nv < 0) { if (!tr.blade) continue; ns = -ns; nv = -nv; }      // back faces: only the blades show both sides
+      const lum = 0.34 + 0.5 * Math.max(0, ns) + 0.2 * nv;
+      order.push({ q, d, lum });
+    }
+    order.sort((a, b) => b.d - a.d);
+    for (const o of order) {
+      const c = Math.round(Math.min(1, o.lum) * 232), col = `rgb(${c},${c},${Math.round(c * 0.975)})`;
+      ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.moveTo(o.q[0], o.q[1]); ctx.lineTo(o.q[2], o.q[3]); ctx.lineTo(o.q[4], o.q[5]); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+  }
+
   function drawTurbine() {
     const { base, hub } = D;
     const P = v => proj(v[0], v[1], v[2]) ? [out[0], out[1]] : null;
@@ -235,8 +285,9 @@
     const nacA = [hub[0] + 0.2, hub[1], hub[2]], nacB = [hub[0] + NAC.len, hub[1], hub[2]];
     const tower = () => body(base, top, TW.base, TW.top, "#d4d3cd", "#6f736f");
     const nacelle = () => body(nacA, nacB, NAC.r, NAC.r * 0.8, "#e2e1db", "#7b7f7b");
+    if (MESH) drawMesh(base);
     // painter's order: whichever of rotor and tower is nearer the camera goes last
-    if (cam.eye[0] > hub[0]) { blades(hub); nacelle(); tower(); }
+    else if (cam.eye[0] > hub[0]) { blades(hub); nacelle(); tower(); }
     else { tower(); nacelle(); blades(hub); }
     const tb = P(base); if (tb) label("Turbine", tb[0], tb[1] + 18, C.dim, "center");
   }
@@ -424,6 +475,7 @@
     if (e.isIntersecting && !started) {
       started = true;
       load().then(() => { requestDraw(); kick(); }).catch(() => { failed = true; requestDraw(); });
+      loadMesh().catch(() => {});        // falls back to the drawn turbine
     }
   }), { rootMargin: "600px 0px" }).observe(canvas);
   new IntersectionObserver(es => es.forEach(e => { visible = e.isIntersecting; visible ? kick() : 0; })).observe(canvas);

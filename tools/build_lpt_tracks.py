@@ -32,7 +32,7 @@ import h5py
 SRC = os.path.expanduser('~/Documents/Bubble Project/Winterthur March 2026/vortex_fitting/trajectories.h5')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'data', 'lpt-tracks.bin')
 TARGET_HZ = 40.0
-MIN_TRACKS = 500    # skip recordings with fewer tracks than this
+MIN_TRACKS = 1000   # skip recordings with fewer tracks than this
 Q = 0.0005          # m per position step
 SPEED_Q = 0.05      # m/s per speed step
 
