@@ -12,16 +12,22 @@ Animation (one loop = one particle lifetime, 187 frames at 24 fps):
   * tip-vortex helix rotates with the rotor; for a helix, rotating about its axis is
     the same as convecting downstream (measured handedness: dAngle/dx < 0 in glTF frame)
   * drone propellers spin
+  * each bubble gets a small smooth incoherent wander (atmospheric turbulence): per bubble and axis,
+    TURB_MODES sine modes with integer cycles per lifetime (1-4) and random phase, so the wander is exactly
+    periodic with the loop; it fades in over TURB_RAMP frames after release
   * each bubble follows its simulated path, with births staggered over the loop, and
     respawns at the generator when it reaches the end of its lifetime
 """
-import json, math, struct, sys
+import json, math, random, struct, sys
 
 static, paths_file, out = sys.argv[1:4]
 REVS = 3             # rotor revolutions per loop (3 per 7.8 s loop = ~23 rpm)
 PROP_REVS = 20       # drone propeller revolutions per loop
 KEY_STEP = 2         # bubble keyframe spacing (frames)
 R_BUBBLE = 0.12      # drawn radius (m); real bubbles are ~2.5 cm
+TURB_AMP = 0.30      # rms atmospheric-turbulence wander per axis (m); tip-vortex scale is metres
+TURB_RAMP = 24       # frames over which the wander fades in after a bubble is released
+TURB_MODES = 3       # sine modes per axis
 
 # ---------- read GLB ----------
 raw = open(static, "rb").read()
@@ -126,16 +132,37 @@ def at_age(path, a):
     i = int(a); f = a - i
     return [path[i][k] * (1 - f) + path[i + 1][k] * f for k in range(3)]
 
+rng = random.Random(2026)
+
+def make_wander():
+    """Per-bubble smooth periodic offset f(age) -> [dx, dy, dz] in glTF axes."""
+    modes = []
+    for _ in range(3):
+        ms = []
+        for _ in range(TURB_MODES):
+            k = rng.randint(1, 4)
+            ms.append((k, rng.uniform(0, 2 * math.pi), rng.uniform(0.5, 1.0) / math.sqrt(k)))
+        norm = math.sqrt(sum(a * a for _, _, a in ms) / 2)      # rms of a sum of sines
+        amp = TURB_AMP * rng.uniform(0.6, 1.2) / norm
+        modes.append([(k, ph, a * amp) for k, ph, a in ms])
+    def f(age):
+        r = min(1.0, max(0.0, age / TURB_RAMP)); r = r * r * (3 - 2 * r)
+        return [r * sum(a * math.sin(2 * math.pi * k * age / W + ph) for k, ph, a in modes[c]) for c in range(3)]
+    return f
+
 group = {"name": "Bubbles", "children": []}
 for bi, b in enumerate(data["bubbles"]):
     path = [to_gl(q) for q in b["path"]]
+    wander = make_wander()
     birth = b["birth"]
     times = sorted(set([float(t) for t in range(0, W, KEY_STEP)] + [float(W)] +
                        ([birth - 1e-3] if birth > 1e-3 else []) + [birth]))
     keys = []
     for t in times:
         a = W - 1 if abs(t - (birth - 1e-3)) < 1e-6 else (t - birth) % W
-        keys.append(at_age(path, a))
+        base = at_age(path, a)
+        w = wander(a)
+        keys.append([base[k] + w[k] for k in range(3)])
     nodes.append({"name": "bubble%d" % bi, "mesh": bubble_mesh, "translation": keys[0]})
     group["children"].append(len(nodes) - 1)
     samplers.append({"input": accessor([t / fps for t in times], "SCALAR", minmax=True),

@@ -5,7 +5,9 @@ out = args[0]
 STATIC_BUBBLES = "--animated" not in args  # animated build adds bubbles in tools/animate_glb.py
 scene = bpy.context.scene
 SKIP_COLS = {"Wind Turbine", "GrassClumps"}  # duplicate turbine, grass instances
-SKIP_OBJS = {"Plane.001", "Cylinder.005", "Cylinder.006", "Cylinder.001"}  # duplicate ground, LED light cones
+SKIP_OBJS = {"Plane.001", "Cylinder.005", "Cylinder.006", "Cylinder.001",  # duplicate ground, LED light cones
+             "Cylinder.009", "Icosphere"}  # leftover tip-vortex test pieces in the 'Tip Vortices' collection: a 2 m x 2 cm
+                                           # cylinder + a 1.6 cm sphere floating at (10, 0, 18) m = the "random floating line"
 
 # 1. Drop grass scatter modifiers from the terrain
 t = bpy.data.objects["Terrain"]
