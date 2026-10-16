@@ -146,7 +146,46 @@
   // upwind turbine upstream of the volume (the volume sits in its wake); its blade tips shed the
   // helix, phased so each turn reaches the volume exactly where the bubbles' cores are
   const bladeAngle = t => ASTAR + OMR * (t + (XMIN - XR) / U);
+  // Turbine mesh from the Blender setup model (assets/data/turbine-mesh.json, tower base at the origin,
+  // real metres), scaled so its hub sits at the schematic hub and its rotor plane at XR; the blades
+  // turn with bladeAngle so the helix leaves their tips. Falls back to the line drawing until loaded.
+  let MESH = null;
+  const MS = (HZ - GROUND) / 18, MHUB = [-1.32, 0, 18];      // mesh scale; hub centre in mesh coords
+  const MBASE = [XR - MHUB[0] * MS, HY, GROUND];
+  if (root.dataset.turbine) fetch(root.dataset.turbine).then(r => r.json()).then(m => {
+    MESH = [];
+    for (const p of m.parts) for (let i = 0; i < p.t.length; i += 3)
+      MESH.push({ blade: p.name.startsWith("Blade"), v: [0, 1, 2].map(j => { const a = 3 * p.t[i + j]; return [p.v[a], p.v[a + 1], p.v[a + 2]]; }) });
+  }).catch(() => {});
+  const SUN = (() => { const v = [0.35, -0.45, 0.82], l = Math.hypot(...v); return v.map(x => x / l); })();
+  function drawTurbineMesh(ctx, view, w, h, t, k) {
+    const d = bladeAngle(t) - Math.PI / 2, cd = Math.cos(d), sd = Math.sin(d);
+    const world = (P, blade) => {
+      let y = P[1], z = P[2];
+      if (blade) { const dy = y - MHUB[1], dz = z - MHUB[2]; y = MHUB[1] + dy * cd - dz * sd; z = MHUB[2] + dy * sd + dz * cd; }
+      return [MBASE[0] + P[0] * MS, MBASE[1] + y * MS, MBASE[2] + z * MS];
+    };
+    const list = [];
+    for (const tr of MESH) {
+      const W = tr.v.map(P => world(P, tr.blade));
+      const u = sub(W[1], W[0]), v = sub(W[2], W[0]), n = cross(u, v), l = Math.hypot(...n);
+      if (!l) continue;
+      const nn = [n[0] / l, n[1] / l, n[2] / l];
+      let nv = -dot(nn, view.f), ns = dot(nn, SUN);
+      if (nv < 0) { if (!tr.blade) continue; nv = -nv; ns = -ns; }
+      const q = W.map(P => scr(view, P, w, h, k));
+      list.push({ q, z: q[0].z + q[1].z + q[2].z, lum: 0.3 + 0.45 * Math.max(0, ns) + 0.2 * nv });
+    }
+    list.sort((a, b) => b.z - a.z);
+    for (const o of list) {
+      const c = Math.round(Math.min(1, o.lum) * 225), col = `rgb(${c},${c},${Math.round(c * 0.975)})`;
+      ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(o.q[0].x, o.q[0].y); ctx.lineTo(o.q[1].x, o.q[1].y); ctx.lineTo(o.q[2].x, o.q[2].y);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
   function drawTurbine(ctx, view, w, h, t, k) {
+    if (MESH) return drawTurbineMesh(ctx, view, w, h, t, k);
     ctx.strokeStyle = C.turbine; ctx.lineWidth = 2.2;
     seg(ctx, view, [XT, HY, GROUND], [XT, HY, HZ - 0.3], w, h, k);
     ctx.lineWidth = 3; seg(ctx, view, [XR, HY, HZ], [XT + 0.6, HY, HZ], w, h, k);   // nacelle points downstream
@@ -177,8 +216,8 @@
   }
 
   // steps 02 and 03 share one wide view: rotor, helix and the volume in its wake
-  // seen from behind the turbine and a little to its left, so the volume reads as offset to the right
-  const K_WIDE = 1.75, VIEW_WIDE = orbit(-0.98, 0.2, 31, [-2.4, -1.2, -1.6]);
+  // seen from behind the turbine and to its right
+  const K_WIDE = 1.75, VIEW_WIDE = orbit(0.62, 0.52, 34, [-2.6, -1.2, -2.4]);
 
   // fixed legend for the helix, top right
   // (drops to a second line when the panel title leaves no room)
@@ -249,7 +288,7 @@
       ctx.strokeStyle = C.brass; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(S.x, S.y, 7 + 2.5 * Math.sin(t * 6), 0, 2 * Math.PI); ctx.stroke();
       dotAt(ctx, S.x, S.y, 3.2, C.brass);
-      const tb = scr(view, [XT, HY, GROUND], w, h, k);
+      const tb = scr(view, MESH ? MBASE : [XT, HY, GROUND], w, h, k);
       label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
       label(ctx, "4 lines of sight → 1 point, every frame", 14, 22, C.brass);
       vortexKey(ctx, w, "4 lines of sight → 1 point, every frame");
@@ -260,7 +299,7 @@
     track(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       // same viewing angle as step 02, a bit closer to the volume
-      const k = K_WIDE, view = orbit(-0.98, 0.2, 23, [-1.6, -0.6, -0.6]);
+      const k = K_WIDE, view = orbit(0.62, 0.52, 22, [-2.2, -1, -0.6]);
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
@@ -280,8 +319,6 @@
       }
       label(ctx, "Lagrangian tracks", 14, 22, C.bubble);
       vortexKey(ctx, w, "Lagrangian tracks");
-      const tb = scr(view, [XT, HY, GROUND], w, h, k);
-      label(ctx, "Turbine", tb.x, tb.y + 18, C.dim, "center");
     },
 
     // 04 the same instant in two views: 3D (lab frame) and along the vortex axis (moving with the core)
