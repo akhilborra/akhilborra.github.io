@@ -5,7 +5,7 @@
 // with fading tails; one recording can be picked instead, and the speed changed (1x = real time).
 // The turbine is drawn from the processing settings (4d-ptv settings.json, same camera-plane frame
 // as the tracks). Drag to rotate, shift/right-drag or two fingers to pan, wheel or pinch to zoom, double-click to reset;
-// until then the view sways slowly about a view from behind.
+// otherwise the view orbits slowly, like the 3D setup model.
 // Animates only while on screen; prefers-reduced-motion holds a still frame until Play is pressed.
 (() => {
   const fig = document.getElementById("lpt-tracks");
@@ -132,10 +132,13 @@
   }
 
   // ---------- camera ----------
-  // seen from behind the turbine and a little to its left, like the schematic above
-  const AZ0 = -0.98, EL0 = 0.2, DIST = 34, K = 2.2, ZMIN = 0.18, ZMAX = 2.4;
+  // same start and motion as the 3D setup model and the schematic: behind the turbine, to its right,
+  // ~30 deg up; orbits clockwise seen from above at 6 deg/s, pausing while the viewer moves the
+  // view and resuming 3 s after (like model-viewer's auto-rotate)
+  const AZ0 = 0.62, EL0 = 0.52, ORBIT = -6 * Math.PI / 180, RESUME = 3000;
+  const DIST = 34, K = 2.2, ZMIN = 0.18, ZMAX = 2.4;
   let az = AZ0, el = EL0, dragAz = 0, dragEl = 0, cam = null;
-  let zoom = 0.85, pan = [0, 0, 0], interacted = false;     // zoom: distance factor; pan: world offset [m]
+  let zoom = 0.85, pan = [0, 0, 0], spin = 0, lastTouch = -Infinity;     // zoom: distance factor; pan: world offset [m]
   function setCam(target0) {
     const target = target0.map((v, k) => v + pan[k]), dist = DIST * zoom;
     const ca = Math.cos(az), sa = Math.sin(az), ce = Math.cos(el), se = Math.sin(el);
@@ -353,7 +356,7 @@
   }
 
   // start 1 s in so tails exist; with reduced motion, hold a still frame until Play is pressed
-  let progress = 0, failed = false, playing = !reduce, simT = reduce ? 6 : 1, sel = -1, speed = 1, swayT = 0;
+  let progress = 0, failed = false, playing = !reduce, simT = reduce ? 6 : 1, sel = -1, speed = 1;
   const loopLen = () => sel >= 0 ? D.h.runs[sel].duration + TAIL : D.loop;
   function draw() {
     ctx.fillStyle = C.panel; ctx.fillRect(0, 0, W, H);
@@ -362,7 +365,7 @@
         W / 2, H / 2, C.text, "center");
       return;
     }
-    az = AZ0 + dragAz + (reduce || interacted ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47));   // slow sway until the viewer takes over
+    az = AZ0 + dragAz + spin;
     el = Math.min(1.35, Math.max(-0.2, EL0 + dragEl));
     setCam([(D.ctr[0] + D.hub[0]) / 2, (D.ctr[1] + D.hub[1]) / 2, D.ctr[2] + 1.5]);
     drawTurbine();
@@ -384,7 +387,8 @@
     if (!(visible && playing && D)) { running = false; return; }
     const d = (now - last) / 1000; last = now;
     const step = Math.min(Math.max(d, 0), 0.1);
-    simT = Math.max(0, simT + step * speed); swayT += step;
+    simT = Math.max(0, simT + step * speed);
+    if (!reduce && !gesture && now - lastTouch > RESUME) spin += ORBIT * step;
     draw();
     requestAnimationFrame(tick);
   }
@@ -415,9 +419,7 @@
 
   // ---------- move around: drag rotates; shift/right-drag or two fingers pans; wheel/pinch zooms ----------
   const redraw = () => { if (!running) requestDraw(); };
-  const takeOver = () => {
-    if (!interacted) { interacted = true; dragAz += reduce ? 0 : 0.3 * Math.sin(2 * Math.PI * swayT / 47); }
-  };
+  const takeOver = () => { lastTouch = performance.now(); };
   const setZoom = z => { zoom = Math.min(ZMAX, Math.max(ZMIN, z)); redraw(); };
   function panBy(dx, dy) {      // screen pixels -> metres at the target distance
     if (!cam) return; const m = cam.dist / cam.s;
@@ -439,6 +441,7 @@
   });
   canvas.addEventListener("pointermove", e => {
     if (!pts.has(e.pointerId) || !gesture) return;
+    takeOver();
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (gesture.mode === "pinch" && pts.size >= 2) {
       const [a, b] = [...pts.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
@@ -452,7 +455,7 @@
     }
   });
   const end = e => {
-    pts.delete(e.pointerId);
+    pts.delete(e.pointerId); takeOver();
     if (pts.size === 1) { const [p] = pts.values(); gesture = { mode: "rotate", x: p.x, y: p.y }; }
     else if (!pts.size) gesture = null;
   };
@@ -461,7 +464,7 @@
     e.preventDefault(); takeOver();
     setZoom(zoom * Math.exp((e.ctrlKey ? 0.01 : 0.0015) * e.deltaY));
   }, { passive: false });
-  function resetView() { interacted = false; dragAz = 0; dragEl = 0; zoom = 0.85; pan = [0, 0, 0]; redraw(); }
+  function resetView() { dragAz = 0; dragEl = 0; spin = 0; zoom = 0.85; pan = [0, 0, 0]; lastTouch = -Infinity; redraw(); }
   canvas.addEventListener("dblclick", resetView);
   fig.querySelectorAll(".lpt-nav button").forEach(b => b.addEventListener("click", () => {
     takeOver();

@@ -216,8 +216,12 @@
   }
 
   // steps 02 and 03 share one wide view: rotor, helix and the volume in its wake
-  // seen from behind the turbine and to its right
-  const K_WIDE = 1.75, VIEW_WIDE = orbit(0.62, 0.52, 34, [-2.6, -1.2, -2.4]);
+  // Shared with the 3D setup model and the measured-track player: every turbine view starts behind
+  // the turbine, to its right and ~30 deg up (VIEW_AZ0 / VIEW_EL), and orbits clockwise seen from
+  // above at 6 deg/s (model-viewer's auto-rotate direction).
+  const VIEW_AZ0 = 0.62, VIEW_EL = 0.52, VIEW_SPIN = -6 * Math.PI / 180;
+  const spinAz = t => VIEW_AZ0 + (reduce ? 0 : VIEW_SPIN * t);
+  const K_WIDE = 1.75, wideView = t => orbit(spinAz(t), VIEW_EL, 34, [-2.6, -1.2, -2.4]);
 
   // fixed legend for the helix, top right
   // (drops to a second line when the panel title leaves no room)
@@ -258,7 +262,7 @@
     // 02 follow one bubble through the volume; four lines of sight meet at it every frame
     match(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
-      const k = K_WIDE, view = VIEW_WIDE;
+      const k = K_WIDE, view = wideView(t);
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
@@ -299,7 +303,7 @@
     track(ctx, w, h, t) {
       ctx.fillStyle = C.panel; ctx.fillRect(0, 0, w, h);
       // same viewing angle as step 02, a bit closer to the volume
-      const k = K_WIDE, view = orbit(0.62, 0.52, 22, [-2.2, -1, -0.6]);
+      const k = K_WIDE, view = orbit(spinAz(t), VIEW_EL, 22, [-2.2, -1, -0.6]);
       drawGround(ctx, view, w, h, k);
       drawHelix(ctx, view, w, h, t, k, C.coreDim, 1.8);
       drawTurbine(ctx, view, w, h, t, k);
